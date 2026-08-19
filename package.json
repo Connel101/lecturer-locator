@@ -1,0 +1,27 @@
+{
+  "name": "lecturer-locator",
+  "version": "1.0.0",
+  "description": "Find any lecturer's office in seconds — just scan their QR code.",
+  "homepage": "https://github.com/Connel101/lecturer-locator#readme",
+  "bugs": {
+    "url": "https://github.com/Connel101/lecturer-locator/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Connel101/lecturer-locator.git"
+  },
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node --watch backend/src/app.ts",
+    "typecheck": "tsc -p backend/tsconfig.json"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.2.0",
+    "typescript": "^7.0.2"
+  }
+}
