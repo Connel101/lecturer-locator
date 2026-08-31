@@ -27,7 +27,6 @@ lecturer-locator/
 │   │
 │   └── tsconfig.json
 │
-├── package.json
 └── README.md
 ```
 
@@ -66,25 +65,33 @@ npm --version
 
 ## Running the Project
 
-Install the dependencies:
+Install and start the backend:
 
 ```bash
+cd backend
 npm install
-```
-
-Start development:
-
-```bash
 npm run dev
 ```
 
-The backend currently runs at:
+The backend runs at:
 
 ```text
 http://localhost:3000
 ```
 
-Once the React frontend is added, `npm run dev` will start both the frontend and backend.
+In a separate terminal, install and start the frontend:
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+The frontend runs at:
+
+```text
+http://localhost:5173
+```
 
 ## Development Approach
 
