@@ -1,7 +1,7 @@
 {
   "version": "8",
   "dialect": "postgres",
-  "id": "24fedbb7-f18b-428c-b85d-cfe51b56a737",
+  "id": "4c727c13-b03e-4214-9b04-683bd329a5fa",
   "prevIds": [
     "00000000-0000-0000-0000-000000000000"
   ],
@@ -113,7 +113,7 @@
       "default": null,
       "generated": null,
       "identity": null,
-      "name": "svg_file_ref",
+      "name": "file_ref",
       "entityType": "columns",
       "schema": "public",
       "table": "floor_plans"

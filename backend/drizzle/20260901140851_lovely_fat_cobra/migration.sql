@@ -2,7 +2,7 @@ CREATE TABLE "floor_plans" (
 	"id" serial PRIMARY KEY,
 	"building_name" varchar(255) NOT NULL,
 	"floor_level" integer NOT NULL,
-	"svg_file_ref" text NOT NULL,
+	"file_ref" text NOT NULL,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "floor_plans_building_floor_unique" UNIQUE("building_name","floor_level")

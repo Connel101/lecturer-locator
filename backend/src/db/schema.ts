@@ -27,7 +27,7 @@ export const floorPlans = pgTable(
     // Ground floor = 0, first floor = 1, etc.
     floorLevel: integer("floor_level").notNull(),
 
-    svgFileRef: text("svg_file_ref").notNull(),
+    fileRef: text("file_ref").notNull(),
 
     createdAt: timestamp("created_at", { withTimezone: true })
       .defaultNow()
