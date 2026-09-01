@@ -13,15 +13,27 @@
   "type": "module",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "setup": "tsx scripts/setup.ts",
+    "migrate": "npx drizzle-kit migrate",
+    "generate": "auth generate --yes --output ./src/db/auth-schema.ts && drizzle-kit generate",
     "dev": "node --watch src/app.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {
-    "express": "^5.2.1"
+    "@better-auth/drizzle-adapter": "^1.7.2",
+    "better-auth": "^1.7.2",
+    "dotenv": "^17.4.2",
+    "drizzle-orm": "^1.0.0-rc.4",
+    "express": "^5.2.1",
+    "pg": "^8.23.0"
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
     "@types/node": "^26.2.0",
+    "@types/pg": "^8.23.1",
+    "auth": "^1.7.2",
+    "drizzle-kit": "^1.0.0-rc.4",
+    "tsx": "^4.23.13",
     "typescript": "^7.0.2"
   }
 }
