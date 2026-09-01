@@ -6,7 +6,7 @@ Find any lecturer's office in seconds — just scan their QR code.
 
 * **Frontend:** React + TypeScript
 * **Backend:** Node.js + Express + TypeScript
-* **Database:** To be decided
+* **Database:** Postgres
 
 The frontend and backend are kept separate and communicate through a simple REST API.
 
@@ -54,6 +54,7 @@ Before starting, make sure you have:
 
 * **Node.js** — install the latest LTS version from the official [Node.js website](https://nodejs.org/en/download?utm_source=chatgpt.com)
 * **Git** — for cloning and working with the project
+* **Docker Desktop** — (https://www.docker.com/products/docker-desktop/)
 
 Check that Node.js and npm are installed:
 
@@ -64,12 +65,17 @@ npm --version
 
 
 ## Running the Project
+Start the database
+```bash
+docker compose up -d
+```
 
 Install and start the backend:
 
 ```bash
 cd backend
 npm install
+npm run setup
 npm run dev
 ```
 
