@@ -8,7 +8,7 @@ Public endpoints do not require authentication.
 
 - Requests and responses use JSON.
 - Field names use `camelCase`.
-- Only active and publicly approved lecturers are returned.
+- Only active lecturers are returned. The `active` field represents whether a lecturer is publicly available.
 - Private and administrator-only information is never returned.
 - Optional fields are omitted when unavailable.
 
@@ -50,6 +50,19 @@ If no lecturers match:
 }
 ```
 
+If a lecturer does not have an assigned office, `office` is `null`.
+
+If `search` is provided more than once or is not a single text value, the API returns `400 Bad Request`:
+
+```json
+{
+  "error": {
+    "code": "INVALID_SEARCH",
+    "message": "The search parameter must be a single text value."
+  }
+}
+```
+
 ## Get a lecturer profile
 
 ```text
@@ -87,7 +100,7 @@ Returns a lecturer using their permanent ID.
 
 ### Profile unavailable — `404 Not Found`
 
-Unknown, inactive and unpublished lecturers use the same response:
+Unknown and inactive lecturers use the same response:
 
 ```json
 {
