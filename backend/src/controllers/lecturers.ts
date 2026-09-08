@@ -1,8 +1,27 @@
 import { and, asc, eq, ilike } from "drizzle-orm";
 import type { Request, Response } from "express";
 
-import { floorPlans, lecturers, offices } from "../db/schema.ts";
+import {
+  floorPlans,
+  lecturerModules,
+  lecturers,
+  modules,
+  offices,
+  routes,
+} from "../db/schema.ts";
 import { db } from "../lib/db.ts";
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function sendLecturerNotFound(res: Response): void {
+  res.status(404).json({
+    error: {
+      code: "LECTURER_NOT_FOUND",
+      message: "Lecturer profile is unavailable.",
+    },
+  });
+}
 
 export async function searchLecturers(
   req: Request,
@@ -63,6 +82,107 @@ export async function searchLecturers(
     res.status(200).json({ lecturers: results });
   } catch (error) {
     console.error("Failed to search lecturers:", error);
+    res.status(500).json({
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "The requested information could not be loaded.",
+      },
+    });
+  }
+}
+
+export async function getLecturerProfile(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const lecturerId = req.params.id;
+
+  if (typeof lecturerId !== "string" || !UUID_PATTERN.test(lecturerId)) {
+    sendLecturerNotFound(res);
+    return;
+  }
+
+  try {
+    const [profile] = await db
+      .select({
+        id: lecturers.id,
+        fullName: lecturers.fullName,
+        title: lecturers.title,
+        department: lecturers.department,
+        researchArea: lecturers.researchArea,
+        officeHours: lecturers.officeHours,
+        buildingName: floorPlans.buildingName,
+        floorLevel: floorPlans.floorLevel,
+        floorPlanFileRef: floorPlans.fileRef,
+        roomNumber: offices.roomNumber,
+        routeId: routes.id,
+        entrancePoint: routes.entrancePoint,
+        svgPath: routes.svgPath,
+      })
+      .from(lecturers)
+      .leftJoin(offices, eq(lecturers.officeId, offices.id))
+      .leftJoin(floorPlans, eq(offices.floorPlanId, floorPlans.id))
+      .leftJoin(routes, eq(offices.id, routes.officeId))
+      .where(and(eq(lecturers.id, lecturerId), eq(lecturers.active, true)))
+      .orderBy(asc(routes.id))
+      .limit(1);
+
+    if (!profile) {
+      sendLecturerNotFound(res);
+      return;
+    }
+
+    const lecturerModuleRows = await db
+      .select({
+        code: modules.code,
+        name: modules.name,
+      })
+      .from(lecturerModules)
+      .innerJoin(modules, eq(lecturerModules.moduleId, modules.id))
+      .where(eq(lecturerModules.lecturerId, lecturerId))
+      .orderBy(asc(modules.code));
+
+    res.status(200).json({
+      id: profile.id,
+      fullName: profile.fullName,
+      title: profile.title,
+      department: profile.department,
+      modules: lecturerModuleRows.map((module) => ({
+        code: module.code,
+        ...(module.name !== null && { name: module.name }),
+      })),
+      ...(profile.researchArea !== null && {
+        researchArea: profile.researchArea,
+      }),
+      ...(profile.officeHours !== null && { officeHours: profile.officeHours }),
+      office:
+        profile.roomNumber === null
+          ? null
+          : {
+              buildingName: profile.buildingName,
+              floorLevel: profile.floorLevel,
+              roomNumber: profile.roomNumber,
+            },
+      route:
+        profile.routeId === null ||
+        profile.buildingName === null ||
+        profile.floorLevel === null ||
+        profile.floorPlanFileRef === null ||
+        profile.entrancePoint === null ||
+        profile.svgPath === null
+          ? null
+          : {
+              floorPlan: {
+                buildingName: profile.buildingName,
+                floorLevel: profile.floorLevel,
+                fileRef: profile.floorPlanFileRef,
+              },
+              entrancePoint: profile.entrancePoint,
+              svgPath: profile.svgPath,
+            },
+    });
+  } catch (error) {
+    console.error("Failed to load lecturer profile:", error);
     res.status(500).json({
       error: {
         code: "INTERNAL_ERROR",
