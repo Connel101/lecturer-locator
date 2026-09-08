@@ -4,6 +4,29 @@ import Directory from "./Directory"
 import SignInOut from "./SignInOut"
 import Lecturers from "./Lecturers"
 import Buildings from "./Buildings"
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
+import { faLocationDot, faQrcode } from "@fortawesome/free-solid-svg-icons"
+
+function Scan() {
+  return (
+    <main className="page-shell feature-page">
+      <div className="feature-icon" aria-hidden="true"><FontAwesomeIcon icon={faQrcode} /></div>
+      <h1>Scan a lecturer's QR code</h1>
+      <p>Point your camera at the code to find their office.</p>
+      <button type="button" className="primary-button">Open camera</button>
+    </main>
+  )
+}
+
+function Map() {
+  return (
+    <main className="page-shell feature-page">
+      <div className="feature-icon" aria-hidden="true"><FontAwesomeIcon icon={faLocationDot} /></div>
+      <h1>Campus map</h1>
+      <p>Your route will appear here after you select or scan a lecturer.</p>
+    </main>
+  )
+}
 
 function App() {
   return (
@@ -17,6 +40,8 @@ function App() {
         <Route path="/signin" element={<SignInOut />} />
          <Route path="/lecturers" element={<Lecturers />} />
          <Route path="/buildings" element={<Buildings />} /> 
+         <Route path="/scan" element={<Scan />} />
+         <Route path="/map" element={<Map />} />
        </Routes>
     </BrowserRouter>
   )
