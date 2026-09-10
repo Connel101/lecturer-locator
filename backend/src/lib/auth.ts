@@ -9,7 +9,11 @@ export const auth = betterAuth({
     provider: "pg",
     schema,
   }),
+  emailAndPassword: {
+    enabled: true,
+    disableSignUp: true,
+  },
   plugins: [
-        admin() 
-    ]
+    admin(),
+  ],
 });
