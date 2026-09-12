@@ -44,6 +44,17 @@ try {
   process.exit(1);
 }
 
+console.log("Provisioning administrator when credentials are configured...");
+
+try {
+  execSync("npm run create-admin -- --optional", {
+    stdio: "inherit",
+  });
+} catch {
+  console.error("✗ Failed to provision the administrator account.");
+  process.exit(1);
+}
+
 console.log("");
 console.log("Backend setup complete.");
 console.log("Run `npm run dev` to start the backend.");

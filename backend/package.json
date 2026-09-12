@@ -12,11 +12,12 @@
   },
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "tsx --test test/**/*.test.ts",
     "setup": "tsx scripts/setup.ts",
+    "create-admin": "tsx scripts/create-admin.ts",
     "migrate": "npx drizzle-kit migrate",
     "generate": "auth generate --yes --output ./src/db/auth-schema.ts && drizzle-kit generate",
-    "dev": "node --watch src/app.ts",
+    "dev": "node --watch src/server.ts",
     "typecheck": "tsc -p tsconfig.json"
   },
   "dependencies": {

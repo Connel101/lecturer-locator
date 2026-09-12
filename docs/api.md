@@ -10,7 +10,8 @@ Public endpoints do not require authentication.
 - Field names use `camelCase`.
 - Only active lecturers are returned. The `active` field represents whether a lecturer is publicly available.
 - Private and administrator-only information is never returned.
-- Optional fields are omitted when unavailable.
+- Optional text fields are omitted when unavailable.
+- `office` and `route` use `null` when their data is unavailable.
 
 ## Search for lecturers
 
@@ -92,11 +93,23 @@ Returns a lecturer using their permanent ID.
     "floorLevel": 0,
     "roomNumber": "G01"
   },
-  "routeAvailable": true
+  "route": {
+    "floorPlan": {
+      "buildingName": "Natural Sciences",
+      "floorLevel": 0,
+      "fileRef": "/data/floorplans/natural-sciences-ground.svg"
+    },
+    "entrancePoint": "Main Entrance",
+    "svgPath": "M 40 200 L 120 200 L 120 350"
+  }
 }
 ```
 
 `researchArea` and `officeHours` are optional. `modules` is an empty array when no modules are available.
+
+If a lecturer does not have an assigned office, `office` is `null`.
+
+If directions, an entrance point or a floor plan are unavailable, `route` is `null`. Route data is returned with the profile so the frontend does not need to make a second API request when the user chooses to view directions.
 
 ### Profile unavailable — `404 Not Found`
 
@@ -107,40 +120,6 @@ Unknown and inactive lecturers use the same response:
   "error": {
     "code": "LECTURER_NOT_FOUND",
     "message": "Lecturer profile is unavailable."
-  }
-}
-```
-
-## Get directions
-
-```text
-GET /api/lecturers/:id/route
-```
-
-Returns the floor plan and predefined route to the lecturer's current office.
-
-### Successful response — `200 OK`
-
-```json
-{
-  "floorPlan": {
-    "buildingName": "Natural Sciences",
-    "floorLevel": 0,
-    "fileRef": "/data/floorplans/natural-sciences-ground.svg"
-  },
-  "entrancePoint": "Main Entrance",
-  "destinationRoom": "G01",
-  "svgPath": "M 40 200 L 120 200 L 120 350"
-}
-```
-
-### Route unavailable — `404 Not Found`
-
-```json
-{
-  "error": {
-    "code": "ROUTE_NOT_FOUND",
-    "message": "Directions are not available for this office."
   }
 }
 ```
