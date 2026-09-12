@@ -1,17 +1,24 @@
-import { useState } from 'react'
+import Navbar from './Navbar'
+import { BrowserRouter, Routes, Route } from "react-router-dom"
+import Directory from "./Directory"
+import SignInOut from "./SignInOut"
+import Lecturers from "./Lecturers"
+import Buildings from "./Buildings"
 
 function App() {
-  const [count, setCount] = useState(0)
-
   return (
-    <>
-      <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <h1 className="text-5xl font-bold text-blue-600">
-        Lecture Locator
-      </h1>
-    </div>
+    
+   <BrowserRouter>
+       <Navbar />
 
-    </>
+       <Routes>
+        <Route path="/" element={<Directory />} />
+       <Route path="/directory" element={<Directory />} />
+        <Route path="/signin" element={<SignInOut />} />
+         <Route path="/lecturers" element={<Lecturers />} />
+         <Route path="/buildings" element={<Buildings />} /> 
+       </Routes>
+    </BrowserRouter>
   )
 }
 
