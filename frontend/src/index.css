@@ -1,2 +1,99 @@
 @import "tailwindcss";
 
+:root {
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  color: #261632;
+  background: #f7f4f9;
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button, input { font: inherit; }
+
+.top-nav {
+  position: relative;
+  z-index: 20;
+  height: 3.5rem;
+  padding: 0 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #3c1053;
+  background: rgba(255, 255, 255, .94);
+  border-bottom: 1px solid #e6dfea;
+}
+.top-nav__brand { display: flex; align-items: center; gap: .75rem; font-weight: 750; }
+.top-nav__icon-button { color: inherit; background: none; border: 0; padding: .5rem; cursor: pointer; }
+.top-nav__menu {
+  position: absolute;
+  top: 3.5rem;
+  left: 1rem;
+  width: 12rem;
+  padding: .4rem;
+  background: white;
+  border: 1px solid #e6dfea;
+  border-radius: .8rem;
+  box-shadow: 0 12px 30px rgba(60, 16, 83, .12);
+}
+.top-nav__menu a { display: block; padding: .75rem; color: #4e4354; text-decoration: none; border-radius: .55rem; font-size: .875rem; font-weight: 650; }
+.top-nav__menu a:hover { background: #f4edf7; color: #3c1053; }
+
+.page-shell { max-width: 46rem; margin: 0 auto; padding: 4rem 1.5rem 8rem; }
+.eyebrow { margin: 0 0 .55rem; color: #8539b6; font-size: .8rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-spacing: -.045em; }
+.page-intro, .feature-page p { max-width: 32rem; margin: 1rem 0 2rem; color: #716777; font-size: 1rem; line-height: 1.65; }
+.search-field { display: grid; gap: .5rem; color: #4d3a57; font-size: .875rem; font-weight: 700; }
+.search-field input { width: 100%; padding: 1rem 1.1rem; color: #261632; background: #fff; border: 1px solid #d9cfde; border-radius: .9rem; outline: none; box-shadow: 0 8px 24px rgba(60, 16, 83, .05); }
+.search-field input:focus { border-color: #8539b6; box-shadow: 0 0 0 3px rgba(133, 57, 182, .13); }
+.feature-page { text-align: center; display: flex; flex-direction: column; align-items: center; }
+.feature-icon { width: 11rem; height: 11rem; margin-bottom: 2rem; display: grid; place-items: center; color: #8539b6; font-size: 4.5rem; background: white; border: 2px solid #dccce5; border-radius: 2rem; box-shadow: 0 18px 45px rgba(60, 16, 83, .1); }
+.primary-button { padding: .9rem 1.4rem; color: white; background: #3c1053; border: 0; border-radius: .8rem; font-weight: 750; cursor: pointer; }
+.mobile-nav { display: none; }
+
+@media (max-width: 640px) {
+  .top-nav { height: 3.75rem; padding: 0 1rem; }
+  .top-nav__brand .top-nav__icon-button { display: none; }
+  .page-shell { padding-top: 3.5rem; }
+  .mobile-nav {
+    position: fixed;
+    z-index: 50;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    height: calc(5.25rem + env(safe-area-inset-bottom));
+    padding: .55rem 1rem calc(.45rem + env(safe-area-inset-bottom));
+    background: rgba(255, 255, 255, .97);
+    border-top: 1px solid #e2d9e7;
+    box-shadow: 0 -8px 28px rgba(60, 16, 83, .09);
+  }
+  .mobile-nav__item {
+    min-width: 4.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: .35rem;
+    color: #817887;
+    text-decoration: none;
+    font-size: 1.25rem;
+  }
+  .mobile-nav__item span:last-child { font-size: .76rem; font-weight: 700; }
+  .mobile-nav__item--active { color: #6f238f; }
+  .mobile-nav__scan { position: relative; margin-top: -2.4rem; }
+  .mobile-nav__scan-button {
+    width: 4.25rem;
+    height: 4.25rem;
+    display: grid;
+    place-items: center;
+    color: white;
+    background: linear-gradient(145deg, #9a49c8, #5b1978);
+    border: 5px solid #f7f4f9;
+    border-radius: 50%;
+    box-shadow: 0 8px 20px rgba(60, 16, 83, .3);
+    font-size: 1.45rem;
+  }
+  .mobile-nav__scan.mobile-nav__item--active .mobile-nav__scan-button { background: #3c1053; }
+}
