@@ -46,6 +46,78 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
 .search-field { display: grid; gap: .5rem; color: #4d3a57; font-size: .875rem; font-weight: 700; }
 .search-field input { width: 100%; padding: 1rem 1.1rem; color: #261632; background: #fff; border: 1px solid #d9cfde; border-radius: .9rem; outline: none; box-shadow: 0 8px 24px rgba(60, 16, 83, .05); }
 .search-field input:focus { border-color: #8539b6; box-shadow: 0 0 0 3px rgba(133, 57, 182, .13); }
+.search-form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: 1rem;
+}
+
+.search-form .primary-button {
+  min-height: 3.35rem;
+}
+
+.primary-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.search-results {
+  margin-top: 2.5rem;
+}
+
+.search-results h2 {
+  margin: 0 0 1rem;
+  font-size: 1.35rem;
+}
+
+.lecturer-list {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.lecturer-card {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem 1.1rem;
+  color: #261632;
+  background: white;
+  border: 1px solid #d9cfde;
+  border-radius: 0.9rem;
+  box-shadow: 0 8px 24px rgba(60, 16, 83, 0.05);
+  text-decoration: none;
+}
+
+.lecturer-card:hover,
+.lecturer-card:focus-visible {
+  border-color: #8539b6;
+  box-shadow: 0 0 0 3px rgba(133, 57, 182, 0.13);
+}
+
+.lecturer-card strong {
+  font-size: 1.05rem;
+}
+
+.lecturer-card span {
+  color: #716777;
+  font-size: 0.9rem;
+}
+
+.status-message {
+  margin: 0;
+  padding: 1rem;
+  color: #4d3a57;
+  background: white;
+  border: 1px solid #d9cfde;
+  border-radius: 0.9rem;
+}
+
+.status-message--error {
+  color: #8a1c1c;
+  background: #fff4f4;
+  border-color: #e6bcbc;
+}
+
 .feature-page { text-align: center; display: flex; flex-direction: column; align-items: center; }
 .feature-icon { width: 11rem; height: 11rem; margin-bottom: 2rem; display: grid; place-items: center; color: #8539b6; font-size: 4.5rem; background: white; border: 2px solid #dccce5; border-radius: 2rem; box-shadow: 0 18px 45px rgba(60, 16, 83, .1); }
 .primary-button { padding: .9rem 1.4rem; color: white; background: #3c1053; border: 0; border-radius: .8rem; font-weight: 750; cursor: pointer; }
@@ -55,6 +127,14 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
   .top-nav { height: 3.75rem; padding: 0 1rem; }
   .top-nav__brand .top-nav__icon-button { display: none; }
   .page-shell { padding-top: 3.5rem; }
+
+  .search-form {
+    grid-template-columns: 1fr;
+  }
+
+  .search-form .primary-button {
+    width: 100%;
+  }
   .mobile-nav {
     position: fixed;
     z-index: 50;
