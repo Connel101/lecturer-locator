@@ -14,6 +14,7 @@
   "scripts": {
     "test": "tsx --test test/**/*.test.ts",
     "setup": "tsx scripts/setup.ts",
+    "seed": "tsx scripts/seed.ts",
     "create-admin": "tsx scripts/create-admin.ts",
     "migrate": "npx drizzle-kit migrate",
     "generate": "auth generate --yes --output ./src/db/auth-schema.ts && drizzle-kit generate",

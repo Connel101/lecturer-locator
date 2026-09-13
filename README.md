@@ -76,8 +76,11 @@ Install and start the backend:
 cd backend
 npm install
 npm run setup
+npm run seed # optional: load fictional development data
 npm run dev
 ```
+
+`npm run seed` is safe to run again: it inserts only missing sample records and never runs as part of setup. See the [local database setup guide](docs/database-setup-guide.md) for details.
 
 The backend runs at:
 
@@ -108,3 +111,7 @@ Keep the code simple and easy to understand.
 * Put request handling in controllers.
 * Keep navigation and path-finding logic separate.
 * Ask before introducing a new technology or major dependency.
+
+## Floorplan route editor
+
+[Footpath](route-editor/README.md) is a standalone vanilla HTML/CSS/JavaScript tool for drawing footprint routes and office pins over SVG or raster floorplans. Open `route-editor/index.html` locally, or use the included manual GitHub Pages workflow. It exports a transparent SVG overlay and optional JSON containing the existing `svgPath` value.
