@@ -39,25 +39,6 @@ type Lecturer = {
 };
 
 function LecturersInformation() {
-    // const lecturers = [
-    //  {
-    //    name: "Dr. Jane Doe",
-    //    title: "Senior Lecturer",
-    //    department: "Computer Science",
-    //    email: "jane.doe@university.edu",
-    //    phone: "+27 18 123 4567",
-    //    office: "Building CS, Room 120",
-    //    appointmentNote: "By appointment only",
-    //    hours: [
-    //      {
-    //        day: "Monday",
-    //        time: "09:00 - 11:00",
-    //      },
-    //    ],
-    //    AcademicFocus:"Richard McClintock, a Latin professor at Hampden-Sydney College in Virginia, looked up one of the more obscure Latin words, consectetur, from a Lorem Ipsum passage, and going through the cites of the word in classical literature, discovered the undoubtable source. Lorem Ipsum comes from sections 1.10.32 and 1.10.33 of  (The Extremes of Good and Evil) by Cicero, written in 45 BC. This book is a treatise on the theory of ethics, very popular during the Renaissance. The first line of Lorem IpsumLorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.",
-    //  },
-    
-  //  ];
   const { id } = useParams();
   const [lecturer, setLecturer] = useState<Lecturer | null>(null);
 
@@ -115,7 +96,6 @@ function LecturersInformation() {
            </p>
 
            <div className="mt-2 flex flex-wrap justify-center gap-1.5">
-
              
                {lecturer.modules.map((module) => (
                   <span className="rounded-full border border-[#e2d2e7] bg-[#f7f0f9] px-2 py-0.5  font-semibold text-[#5a1b70]" key={module.code}>
@@ -125,17 +105,11 @@ function LecturersInformation() {
              
            </div>
            <div className="mt-2 flex flex-wrap justify-center gap-1.5">
-
-             
-               
                   <span className="rounded-full border border-[#e2d2e7] bg-[#f7f0f9] px-2 py-0.5  font-semibold text-[#5a1b70]" >
                     {lecturer.researchArea}
                   </span>
-                
              
            </div>
-
-           
          </div>
        </section>
 
@@ -146,77 +120,34 @@ function LecturersInformation() {
             Location
          </h2>
 
-         {/* <div className="mt-2 space-y-2 "> */} 
-
-           {/* Email */}
-           {/* <div className="flex gap-2"> */}
-             {/* <FontAwesomeIcon icon={faEnvelope} />
-
-             <div className="min-w-0">
-               <p className="font-semibold text-[#4a3a4e]">
-                 Email
-               </p>
-
-               <a
-                href={`mailto:${lecturers[0].email}`}
-                className="break-all text-[#4b145f] hover:underline"
-              >
-                 {lecturers[0].email}
-               </a>
-             </div> */}
-           {/* </div> */}
-
-           {/* Phone */}
-           {/* <div className="flex gap-2">
-            <FontAwesomeIcon icon={faPhone} />
-
-            <div>
-               <p className="font-semibold text-[#4a3a4e]">
-                 Phone
-              </p>
-
-               <a
-                 href={`tel:${lecturers[0].phone}`}
-                 className="text-[#4b145f] hover:underline"
-               >
-                 {lecturers[0].phone}
-               </a>
-             </div>
-           </div> */}
-
            {/* Office */}
           <div className="flex gap-2">
-             <FontAwesomeIcon icon={faBuilding} />
+            <FontAwesomeIcon icon={faBuilding} />
+          <div>
+          <p className="font-semibold text-[#4a3a4e]">
+            Office
+          </p>
 
-             <div>
-               <p className="font-semibold text-[#4a3a4e]">
-                 Office
-               </p>
+          <p className="leading-3 text-[#56465a]">
+            {lecturer.office.buildingName}, room {lecturer.office.roomNumber}
+          </p>
 
-              <p className="leading-3 text-[#56465a]">
-                 {lecturer.office.buildingName}, room {lecturer.office.roomNumber}
-               </p>
-
-               <div className="flex gap-2">
-              <button className="mt-1 inline-flex items-center gap-1 font-semibold text-[#4b145f] hover:underline">
-                <FontAwesomeIcon icon={faLocationDot} />
-                 View Map
-               </button>
-              <button className="mt-1 inline-flex items-center gap-1 font-semibold text-[#4b145f] hover:underline">
-                <FontAwesomeIcon icon={faDiamondTurnRight} />
-                 View directions
-               </button>
-               </div>
-
-            </div>
-           </div> 
-
-         {/* </div> */}
+          <div className="flex gap-2">
+          <button className="mt-1 inline-flex items-center gap-1 font-semibold text-[#4b145f] hover:underline">
+          <FontAwesomeIcon icon={faLocationDot} />
+            View Map
+          </button>
+          <button className="mt-1 inline-flex items-center gap-1 font-semibold text-[#4b145f] hover:underline">
+            <FontAwesomeIcon icon={faDiamondTurnRight} />
+              View directions
+          </button>
+          </div>
+          </div>
+          </div> 
        </section>
 
        {/* QR Code */}
        <section className="mt-3 rounded-[5px] border border-[#ece7ed] bg-white p-3 text-center shadow-sm">
-
          <p className=" font-medium uppercase tracking-[0.12em] text-[#5d4b61]">
            Scan to share profile
          </p>
@@ -228,59 +159,31 @@ function LecturersInformation() {
              className="h-full w-full object-contain"
            />
          </div>
-
        </section>
 
        {/* Office Hours */}
+
+       {lecturer.officeHours && (
        <section className="mt-3 rounded-[5px] border border-[#ece7ed] bg-white p-3 shadow-sm md:col-span-2">
          <div className="flex items-center justify-between">
            <h2 className=" font-bold text-[#4b145f]">
              Office Hours
            </h2>
-
            <FontAwesomeIcon icon={faClock} />
          </div>
 
-         <div className="mt-2 divide-y divide-[#eee9ef] ">
-              
-                
+         <div className="mt-2 divide-y divide-[#eee9ef] ">     
+            <div className="flex items-center justify-between py-1.5">
+              <span className="font-medium text-[#4c3d50]">
+              </span>
 
-           
-             <div
-               
-               className="flex items-center justify-between py-1.5"
-             >
-               <span className="font-medium text-[#4c3d50]">
-                
-               </span>
-
-               <span className="text-[#695c6c]">
+              <span className="text-[#695c6c]">
                  {lecturer.officeHours}
                </span>
-             </div>
-
-         </div>
-
-       </section>
-
-      {/* Academic Focus
-      <section className="mt-3 rounded-[5px] border border-[#ece7ed] bg-white p-3 shadow-sm md:col-span-3">
-        <div className="flex items-center justify-between">
-          <h2 className=" font-bold text-[#4b145f]">
-      Academic Focus
-           </h2>
-      </div>
-
-      <div className="mt-2 divide-y divide-[#eee9ef] ">
-
-        <p className="text-[#695c6c]">
-          {lecturers[0].AcademicFocus}
-        </p>
-      </div> */}
-
-        
-
-    {/* </section>  */}
+            </div>
+          </div>
+        </section>
+       )}
 
     </main>
       );
