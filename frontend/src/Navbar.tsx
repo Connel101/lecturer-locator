@@ -66,10 +66,7 @@ function Navbar() {
           <span className="mobile-nav__scan-button"><FontAwesomeIcon icon={faCamera} /></span>
           <span>Scan</span>
         </NavLink>
-        <NavLink to="/map" className={tabClassName}>
-          <FontAwesomeIcon icon={faLocationDot} />
-          <span>Map</span>
-        </NavLink>
+        
       </nav>
     </>
   )
