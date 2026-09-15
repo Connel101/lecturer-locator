@@ -6,6 +6,8 @@ import Lecturers from "./Lecturers"
 import Buildings from "./Buildings"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationDot, faQrcode } from "@fortawesome/free-solid-svg-icons"
+import LecturersInformation from './LecturersInformation'
+
 
 function Scan() {
   return (
@@ -42,6 +44,9 @@ function App() {
          <Route path="/buildings" element={<Buildings />} /> 
          <Route path="/scan" element={<Scan />} />
          <Route path="/map" element={<Map />} />
+         <Route
+  path="/lecturers/info/:id"
+  element={<LecturersInformation />}/>
        </Routes>
     </BrowserRouter>
   )
