@@ -133,11 +133,11 @@ function LecturersInformation() {
           </p>
 
           <div className="flex gap-2">
-          <button className="cursor-pointer mt-1 inline-flex items-center gap-1 font-semibold text-[#4b145f] hover:underline">
+          <button className="mt-1 inline-flex items-center gap-1 font-semibold text-[#4b145f] hover:underline">
           <FontAwesomeIcon icon={faLocationDot} />
             View Map
           </button>
-          <button className="cursor-pointer mt-1 inline-flex items-center gap-1 font-semibold text-[#4b145f] hover:underline">
+          <button className="mt-1 inline-flex items-center gap-1 font-semibold text-[#4b145f] hover:underline">
             <FontAwesomeIcon icon={faDiamondTurnRight} />
               View directions
           </button>
