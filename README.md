@@ -80,7 +80,7 @@ npm run seed # optional: load fictional development data
 npm run dev
 ```
 
-`npm run seed` is safe to run again: it inserts only missing sample records and never runs as part of setup. See the [local database setup guide](docs/database-setup-guide.md) for details.
+`npm run seed` inserts missing sample records and refreshes existing sample lecturers, office assignments, module links, floor-plan references, and route SVGs from the seed files. It preserves lecturer IDs and unrelated records, and never runs as part of setup. Manual edits to matching sample records are overwritten. See the [local database setup guide](docs/database-setup-guide.md) for details.
 
 The backend runs at:
 

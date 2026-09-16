@@ -2,91 +2,40 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBuilding,
   faClock,
-  faEnvelope,
-  faLocationDot,
-  faPhone,
   faDiamondTurnRight,
 
 } from "@fortawesome/free-solid-svg-icons";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-
-type Module = {
-  code: string;
-};
-
-type Lecturer = {
-  id: string;
-  fullName: string;
-  title: string;
-  department: string;
-  modules: Module[];
-  researchArea: string;
-  officeHours: string;
-  office: {
-    buildingName: string;
-    floorLevel: number;
-    roomNumber: string;
-  };
-  route:{
-    floorPlan:{
-      buldingName: string;
-      floorLevel: number;
-      fileRef: string; 
-    },
-    entrancePoint:string;
-  }
-};
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useLecturerProfile } from './lecturer-profile';
 
 function LecturersInformation() {
-  const { id } = useParams();
-  const [lecturer, setLecturer] = useState<Lecturer | null>(null);
-
-  useEffect(() => {
-    
-    const fetchLecturer = async () => {
-      try {
-        const response = await fetch(
-          `/api/lecturers/${id}`
-        );
-
-        if (!response.ok) {
-          throw new Error("Lecturer not found");
-        }
-
-        const data = await response.json();
-        setLecturer(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    if (id) {
-      fetchLecturer();
-    }
-  }, [id]);
-
-  if (!lecturer) {
-    return <p>Loading...</p>;
-  }
+  const lecturer = useLecturerProfile();
+  const photoUrl = lecturer.photoUrl?.trim();
+  const [failedPhotoUrl, setFailedPhotoUrl] = useState<string | null>(null);
   return (
 
 
     // <main className="mx-auto px-24 py-8 max-[640px]:px-12 max-[640px]:pb-28 grid grid-cols-1 gap-4 px-4 pb-6 pt-4 md:grid-cols-3 lg:grid-cols-3">
-    <main className="page-shell">
+    <main className="page-shell profile-page">
+      <Link className="route-link" to="/directory">← Back to directory</Link>
       {/* Lecture's Details */}
     <section className="overflow-hidden rounded-[5px] border border-[#ece7ed] bg-white shadow-sm md:col-span-1 md:row-span-2">
       <div className="flex flex-col items-center px-4 pb-3 pt-4">
 
-           <div className="h-[82px] w-[70px] overflow-hidden rounded-[4px] border border-[#e2dce4] bg-[#eee9ef]">
-             <img
-              
-               alt={lecturer.fullName }
-               className="h-full w-full object-cover"
-             />
-           </div>
+           {/* TODO: Connect profile photos when the API provides photoUrl. */}
+           {photoUrl && photoUrl !== failedPhotoUrl && (
+             <div className="mb-2 h-[82px] w-[70px] overflow-hidden rounded-[4px] border border-[#e2dce4] bg-[#eee9ef]">
+               <img
+                 src={photoUrl}
+                 alt={lecturer.fullName}
+                 className="h-full w-full object-cover"
+                 onError={() => setFailedPhotoUrl(photoUrl)}
+               />
+             </div>
+           )}
 
-           <h1 className="text-center mt-2 font-bold text-[#4b145f]">
+           <h1 className="text-center font-bold text-[#4b145f]">
              {lecturer.fullName}
             
            </h1>
@@ -129,21 +78,19 @@ function LecturersInformation() {
           </p>
 
           <p className="leading-3 text-[#56465a]">
-            {lecturer.office.buildingName}, room {lecturer.office.roomNumber}
+            {lecturer.office ? `${lecturer.office.buildingName ?? 'Building unavailable'}, room ${lecturer.office.roomNumber}` : 'Office not assigned'}
           </p>
 
-          <div className="flex gap-2">
-          <button className="mt-1 inline-flex items-center gap-1 font-semibold text-[#4b145f] hover:underline">
-          <FontAwesomeIcon icon={faLocationDot} />
-            View Map
-          </button>
-          <button className="mt-1 inline-flex items-center gap-1 font-semibold text-[#4b145f] hover:underline">
-            <FontAwesomeIcon icon={faDiamondTurnRight} />
-              View directions
-          </button>
           </div>
           </div>
-          </div> 
+
+          <Link
+            to="directions"
+            className="primary-button mt-4 flex min-h-14 w-full items-center justify-center gap-3 text-center no-underline transition-colors hover:bg-[#52166e] active:bg-[#2b0b3c] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8539b6] motion-reduce:transition-none"
+          >
+            <FontAwesomeIcon icon={faDiamondTurnRight} aria-hidden="true" />
+            View directions
+          </Link>
        </section>
 
        {/* QR Code */}
