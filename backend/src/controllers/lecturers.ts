@@ -117,7 +117,7 @@ export async function getLecturerProfile(
         roomNumber: offices.roomNumber,
         routeId: routes.id,
         entrancePoint: routes.entrancePoint,
-        svgPath: routes.svgPath,
+        svgOverlay: routes.svgOverlay,
       })
       .from(lecturers)
       .leftJoin(offices, eq(lecturers.officeId, offices.id))
@@ -169,7 +169,7 @@ export async function getLecturerProfile(
         profile.floorLevel === null ||
         profile.floorPlanFileRef === null ||
         profile.entrancePoint === null ||
-        profile.svgPath === null
+        profile.svgOverlay === null
           ? null
           : {
               floorPlan: {
@@ -178,7 +178,7 @@ export async function getLecturerProfile(
                 fileRef: profile.floorPlanFileRef,
               },
               entrancePoint: profile.entrancePoint,
-              svgPath: profile.svgPath,
+              svgOverlay: profile.svgOverlay,
             },
     });
   } catch (error) {

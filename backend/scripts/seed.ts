@@ -3,7 +3,7 @@ import "dotenv/config";
 import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
-import { and, eq } from "drizzle-orm";
+import { and, eq, notInArray } from "drizzle-orm";
 
 import {
   floorPlans,
@@ -36,7 +36,8 @@ function formatCounts(summary: SeedSummary): string[] {
 
   return Object.entries(labels).map(([entity, label]) => {
     const key = entity as keyof typeof labels;
-    return `  ${label}: ${summary.inserted[key]} inserted, ${summary.reused[key]} reused`;
+    const action = ["floorPlans", "lecturers", "routes"].includes(key) ? "refreshed" : "reused";
+    return `  ${label}: ${summary.inserted[key]} inserted, ${summary.reused[key]} ${action}`;
   });
 }
 
@@ -49,7 +50,7 @@ async function main(): Promise<void> {
 
   const summary = await db.transaction(async (tx) => {
     const store: SeedStore = {
-      async getOrCreateFloorPlan(input) {
+      async saveFloorPlan(input) {
         const [existing] = await tx
           .select({ id: floorPlans.id })
           .from(floorPlans)
@@ -60,7 +61,11 @@ async function main(): Promise<void> {
             ),
           )
           .limit(1);
-        if (existing) return { id: existing.id, inserted: false };
+        if (existing) {
+          await tx.update(floorPlans).set({ fileRef: input.fileRef, updatedAt: new Date() })
+            .where(eq(floorPlans.id, existing.id));
+          return { id: existing.id, inserted: false };
+        }
 
         const [created] = await tx.insert(floorPlans).values(input).returning({ id: floorPlans.id });
         return { id: created.id, inserted: true };
@@ -83,13 +88,17 @@ async function main(): Promise<void> {
         return { id: created.id, inserted: true };
       },
 
-      async getOrCreateLecturer(input) {
+      async saveLecturer(input) {
         const [existing] = await tx
           .select({ id: lecturers.id })
           .from(lecturers)
           .where(eq(lecturers.fullName, input.fullName))
           .limit(1);
-        if (existing) return { id: existing.id, inserted: false };
+        if (existing) {
+          await tx.update(lecturers).set({ ...input, updatedAt: new Date() })
+            .where(eq(lecturers.id, existing.id));
+          return { id: existing.id, inserted: false };
+        }
 
         const [created] = await tx.insert(lecturers).values(input).returning({ id: lecturers.id });
         return { id: created.id, inserted: true };
@@ -107,6 +116,14 @@ async function main(): Promise<void> {
         return { id: created.id, inserted: true };
       },
 
+      async removeOtherLecturerModules(lecturerId, moduleIds) {
+        const removed = await tx.delete(lecturerModules).where(and(
+          eq(lecturerModules.lecturerId, lecturerId),
+          moduleIds.length ? notInArray(lecturerModules.moduleId, moduleIds) : undefined,
+        )).returning({ moduleId: lecturerModules.moduleId });
+        return removed.length;
+      },
+
       async ensureLecturerModule(lecturerId, moduleId) {
         const [created] = await tx
           .insert(lecturerModules)
@@ -116,13 +133,19 @@ async function main(): Promise<void> {
         return { inserted: Boolean(created) };
       },
 
-      async getOrCreateRoute(input) {
+      async saveRoute(input) {
         const [existing] = await tx
-          .select({ id: routes.id })
+          .select()
           .from(routes)
           .where(eq(routes.officeId, input.officeId))
+          .orderBy(routes.id)
           .limit(1);
-        if (existing) return { inserted: false };
+        if (existing) {
+          await tx.update(routes).set({
+            entrancePoint: input.entrancePoint, svgOverlay: input.svgOverlay, updatedAt: new Date(),
+          }).where(eq(routes.id, existing.id));
+          return { inserted: false };
+        }
 
         await tx.insert(routes).values(input);
         return { inserted: true };
@@ -141,6 +164,7 @@ async function main(): Promise<void> {
 
   console.log("Development seed complete.");
   console.log(formatCounts(summary).join("\n"));
+  console.log(`  obsolete module links removed: ${summary.moduleLinksRemoved}`);
   if (summary.routesSkipped.length > 0) {
     console.warn(`  routes skipped (missing SVG): ${summary.routesSkipped.join(", ")}`);
   }
