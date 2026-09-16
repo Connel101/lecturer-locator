@@ -14,7 +14,8 @@ function LecturersInformation() {
 
 
     // <main className="mx-auto px-24 py-8 max-[640px]:px-12 max-[640px]:pb-28 grid grid-cols-1 gap-4 px-4 pb-6 pt-4 md:grid-cols-3 lg:grid-cols-3">
-    <main className="page-shell">
+    <main className="page-shell profile-page">
+      <Link className="route-link" to="/directory">← Back to directory</Link>
       {/* Lecture's Details */}
     <section className="overflow-hidden rounded-[5px] border border-[#ece7ed] bg-white shadow-sm md:col-span-1 md:row-span-2">
       <div className="flex flex-col items-center px-4 pb-3 pt-4">

@@ -35,8 +35,8 @@ function ProfileLoader({ id }: { id: string }) {
   }, [id, attempt])
 
   if (lecturer) return <Outlet context={lecturer} />
-  return <main className="page-shell">
-    <Link className="route-link" to="/directory">Back to directory</Link>
+  return <main className="page-shell profile-page">
+    <Link className="route-link" to="/directory">← Back to directory</Link>
     <p className="status-message" role="status">
       {notFound ? 'Lecturer profile is unavailable.' : error || 'Loading lecturer profile…'}
     </p>
