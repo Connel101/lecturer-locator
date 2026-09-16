@@ -9,6 +9,10 @@ export default defineConfig({
   ],
   server: {
     proxy: {
+      '/data/floorplans': {
+        target: 'http://localhost:3000',
+        changeOrigin: true,
+      },
       '/api': {
         target: 'http://localhost:3000',
         changeOrigin: true,

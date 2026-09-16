@@ -2,73 +2,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
   faBuilding,
   faClock,
-  faEnvelope,
-  faLocationDot,
-  faPhone,
   faDiamondTurnRight,
 
 } from "@fortawesome/free-solid-svg-icons";
-import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
-
-type Module = {
-  code: string;
-};
-
-type Lecturer = {
-  id: string;
-  fullName: string;
-  title: string;
-  department: string;
-  modules: Module[];
-  researchArea: string;
-  officeHours: string;
-  office: {
-    buildingName: string;
-    floorLevel: number;
-    roomNumber: string;
-  };
-  route:{
-    floorPlan:{
-      buldingName: string;
-      floorLevel: number;
-      fileRef: string; 
-    },
-    entrancePoint:string;
-  }
-};
+import { Link } from "react-router-dom";
+import { useLecturerProfile } from './lecturer-profile';
 
 function LecturersInformation() {
-  const { id } = useParams();
-  const [lecturer, setLecturer] = useState<Lecturer | null>(null);
-
-  useEffect(() => {
-    
-    const fetchLecturer = async () => {
-      try {
-        const response = await fetch(
-          `/api/lecturers/${id}`
-        );
-
-        if (!response.ok) {
-          throw new Error("Lecturer not found");
-        }
-
-        const data = await response.json();
-        setLecturer(data);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    if (id) {
-      fetchLecturer();
-    }
-  }, [id]);
-
-  if (!lecturer) {
-    return <p>Loading...</p>;
-  }
+  const lecturer = useLecturerProfile();
   return (
 
 
@@ -129,21 +70,19 @@ function LecturersInformation() {
           </p>
 
           <p className="leading-3 text-[#56465a]">
-            {lecturer.office.buildingName}, room {lecturer.office.roomNumber}
+            {lecturer.office ? `${lecturer.office.buildingName ?? 'Building unavailable'}, room ${lecturer.office.roomNumber}` : 'Office not assigned'}
           </p>
 
-          <div className="flex gap-2">
-          <button className="mt-1 inline-flex items-center gap-1 font-semibold text-[#4b145f] hover:underline">
-          <FontAwesomeIcon icon={faLocationDot} />
-            View Map
-          </button>
-          <button className="mt-1 inline-flex items-center gap-1 font-semibold text-[#4b145f] hover:underline">
-            <FontAwesomeIcon icon={faDiamondTurnRight} />
-              View directions
-          </button>
           </div>
           </div>
-          </div> 
+
+          <Link
+            to="directions"
+            className="primary-button mt-4 flex min-h-14 w-full items-center justify-center gap-3 text-center no-underline transition-colors hover:bg-[#52166e] active:bg-[#2b0b3c] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8539b6] motion-reduce:transition-none"
+          >
+            <FontAwesomeIcon icon={faDiamondTurnRight} aria-hidden="true" />
+            View directions
+          </Link>
        </section>
 
        {/* QR Code */}
