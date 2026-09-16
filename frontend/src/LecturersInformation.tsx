@@ -5,11 +5,14 @@ import {
   faDiamondTurnRight,
 
 } from "@fortawesome/free-solid-svg-icons";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLecturerProfile } from './lecturer-profile';
 
 function LecturersInformation() {
   const lecturer = useLecturerProfile();
+  const photoUrl = lecturer.photoUrl?.trim();
+  const [failedPhotoUrl, setFailedPhotoUrl] = useState<string | null>(null);
   return (
 
 
@@ -20,15 +23,19 @@ function LecturersInformation() {
     <section className="overflow-hidden rounded-[5px] border border-[#ece7ed] bg-white shadow-sm md:col-span-1 md:row-span-2">
       <div className="flex flex-col items-center px-4 pb-3 pt-4">
 
-           <div className="h-[82px] w-[70px] overflow-hidden rounded-[4px] border border-[#e2dce4] bg-[#eee9ef]">
-             <img
-              
-               alt={lecturer.fullName }
-               className="h-full w-full object-cover"
-             />
-           </div>
+           {/* TODO: Connect profile photos when the API provides photoUrl. */}
+           {photoUrl && photoUrl !== failedPhotoUrl && (
+             <div className="mb-2 h-[82px] w-[70px] overflow-hidden rounded-[4px] border border-[#e2dce4] bg-[#eee9ef]">
+               <img
+                 src={photoUrl}
+                 alt={lecturer.fullName}
+                 className="h-full w-full object-cover"
+                 onError={() => setFailedPhotoUrl(photoUrl)}
+               />
+             </div>
+           )}
 
-           <h1 className="text-center mt-2 font-bold text-[#4b145f]">
+           <h1 className="text-center font-bold text-[#4b145f]">
              {lecturer.fullName}
             
            </h1>

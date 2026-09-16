@@ -3,6 +3,8 @@ import { useOutletContext } from 'react-router-dom'
 export interface LecturerProfile {
   id: string
   fullName: string
+  // Optional until profile photos are supplied by the API.
+  photoUrl?: string | null
   title: string | null
   department: string | null
   modules: { code: string; name?: string }[]
