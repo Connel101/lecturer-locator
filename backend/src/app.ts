@@ -5,6 +5,7 @@ import { auth } from "./lib/auth.ts";
 import { lecturerRouter } from "./routes/lecturers.ts";
 import { adminRouter } from "./routes/admin.ts";
 
+
 export const app: Express = express();
 
 // Serve local floor-plan assets through /data/floorplans.

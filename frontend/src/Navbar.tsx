@@ -2,6 +2,8 @@ import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faBuildingColumns, faCamera, faUser } from '@fortawesome/free-solid-svg-icons'
 import { Link, NavLink } from 'react-router-dom'
+import { authClient } from "./lib/auth-client";
+import { useNavigate } from 'react-router-dom';
 
 const tabClassName = ({ isActive }: { isActive: boolean }) =>
   `mobile-nav__item${isActive ? ' mobile-nav__item--active' : ''}`
@@ -9,6 +11,8 @@ const tabClassName = ({ isActive }: { isActive: boolean }) =>
 function Navbar() {
   const [menu, setMenu] = useState(false)
   const [signIn, setSignIn] = useState(false)
+  const { data: session } = authClient.useSession();
+  const navigate = useNavigate();
 
   return (
     <>
@@ -21,17 +25,26 @@ function Navbar() {
         </div>
         <Link to="/signin" className="top-nav__icon-button" aria-label="Admin sign in"><FontAwesomeIcon icon={faUser} /></Link>
 
-        {menu && !signIn && (
+        {menu && !session && (
           <div className="top-nav__menu">
             <Link to="/directory" onClick={() => setMenu(false)}>Directory</Link>
-            <Link to="/signin" onClick={() => { setMenu(false); setSignIn(true) }}>Admin sign in</Link>
           </div>
         )}
-        {menu && signIn && (
+        {menu && session && (
           <div className="top-nav__menu">
             <Link to="/lecturers" onClick={() => setMenu(false)}>Lecturers</Link>
             <Link to="/buildings" onClick={() => setMenu(false)}>Buildings</Link>
-            <Link to="/directory" onClick={() => { setMenu(false); setSignIn(false) }}>Sign out</Link>
+            <Link to="/directory" onClick={() => { setMenu(false) }}>Sign out</Link>
+            <Link to="/" onClick={() => setMenu(false)}>Profile</Link>
+            <Link to="/signin"
+            onClick={async () => {
+              await authClient.signOut();
+              setMenu(false);
+            }}
+            className="text-red-600"
+          >
+            Sign Out
+          </Link>
           </div>
         )}
       </nav>
