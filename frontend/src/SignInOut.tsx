@@ -11,8 +11,8 @@ function SignInOut() {
   const [isSigningIn, setIsSigningIn] = useState(false);
   
 
-  const handleLogin = async () => {
-    
+  const handleLogin = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setErrorMessage("");
     setIsSigningIn(true);
 
@@ -71,7 +71,7 @@ function SignInOut() {
 
           {errorMessage && <p role="alert" className="text-sm text-red-700">{errorMessage}</p>}
 
-          <button onClick={handleLogin} disabled={isSigningIn} className="cursor-pointer mt-2 rounded-lg bg-[#3c1053] px-4 py-3 font-bold text-white transition hover:bg-[#54166f] disabled:cursor-wait disabled:opacity-60">
+          <button type="submit" disabled={isSigningIn} className="cursor-pointer mt-2 rounded-lg bg-[#3c1053] px-4 py-3 font-bold text-white transition hover:bg-[#54166f] disabled:cursor-wait disabled:opacity-60">
             {isSigningIn ? "Signing in..." : "Sign in"}
           </button>
         </form>

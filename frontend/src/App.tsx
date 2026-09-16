@@ -37,32 +37,25 @@ function App() {
   return (
     
    <BrowserRouter>
-       <Navbar />
+    <Navbar />
 
-       <Routes>
-        <Route path="/" element={<Directory />} />
-       <Route path="/directory" element={<Directory />} />
-        <Route path="/signin" element={<SignInOut />} />
-         
-         <Route path="/scan" element={<Scan />} />
-         <Route path="/map" element={<Map />} />
+    <Routes>
+      <Route path="/" element={<Directory />} />
+      <Route path="/directory" element={<Directory />} />
+      <Route path="/signin" element={<SignInOut />} />     
+      <Route path="/scan" element={<Scan />} />
+      <Route path="/map" element={<Map />} />  
+      <Route
+      path="/lecturers/info/:id"
+      element={<LecturerProfileLayout />}>
+      <Route index element={<LecturersInformation />} />
+      <Route path="directions" element={<RouteDirections />} /></Route>
 
-         
-          
-         
-         
-         <Route
-  path="/lecturers/info/:id"
-  element={<LecturerProfileLayout />}>
-    <Route index element={<LecturersInformation />} />
-    <Route path="directions" element={<RouteDirections />} />
-  </Route>
-
-  <Route element={<ProtectedRoute />}>
-          <Route path="/lecturers" element={<Lecturers />} />
-          <Route path="/buildings" element={<Buildings />} /> 
-       </Route>
-       </Routes>
+      <Route element={<ProtectedRoute />}>
+      <Route path="/lecturers" element={<Lecturers />} />
+      <Route path="/buildings" element={<Buildings />} /> 
+      </Route>
+    </Routes>
 
        
     </BrowserRouter>

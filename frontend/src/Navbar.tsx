@@ -3,16 +3,14 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faBuildingColumns, faCamera, faUser } from '@fortawesome/free-solid-svg-icons'
 import { Link, NavLink } from 'react-router-dom'
 import { authClient } from "./lib/auth-client";
-import { useNavigate } from 'react-router-dom';
 
 const tabClassName = ({ isActive }: { isActive: boolean }) =>
   `mobile-nav__item${isActive ? ' mobile-nav__item--active' : ''}`
 
 function Navbar() {
   const [menu, setMenu] = useState(false)
-  const [signIn, setSignIn] = useState(false)
   const { data: session } = authClient.useSession();
-  const navigate = useNavigate();
+  const [usermenu, setUserMenu] = useState(false)
 
   return (
     <>
@@ -23,8 +21,31 @@ function Navbar() {
           </button>
           <span>LecturerLocator</span>
         </div>
-        <Link to="/signin" className="top-nav__icon-button" aria-label="Admin sign in"><FontAwesomeIcon icon={faUser} /></Link>
 
+        
+        <button onClick={() => setUserMenu(!usermenu)} className="top-nav__icon-button" aria-label="Admin sign in"><FontAwesomeIcon icon={faUser} /></button>
+        {usermenu && session && (
+          <div className="top-user__menu">
+            
+            <Link to="/" onClick={() => setUserMenu(false)}>Profile</Link>
+            <Link to="/signin"
+            onClick={async () => {
+              await authClient.signOut();
+              setUserMenu(false);
+            }}
+            className="text-red-600"
+          >
+            Sign Out
+          </Link>
+          </div>
+        )}
+
+        {usermenu && !session && (
+          <div className="top-user__menu">
+            <Link to="/signin" onClick={() => { setUserMenu(false) }}>Sign In</Link>
+            
+          </div>
+        )}
         {menu && !session && (
           <div className="top-nav__menu">
             <Link to="/directory" onClick={() => setMenu(false)}>Directory</Link>
@@ -34,17 +55,7 @@ function Navbar() {
           <div className="top-nav__menu">
             <Link to="/lecturers" onClick={() => setMenu(false)}>Lecturers</Link>
             <Link to="/buildings" onClick={() => setMenu(false)}>Buildings</Link>
-            <Link to="/directory" onClick={() => { setMenu(false) }}>Sign out</Link>
-            <Link to="/" onClick={() => setMenu(false)}>Profile</Link>
-            <Link to="/signin"
-            onClick={async () => {
-              await authClient.signOut();
-              setMenu(false);
-            }}
-            className="text-red-600"
-          >
-            Sign Out
-          </Link>
+            
           </div>
         )}
       </nav>
