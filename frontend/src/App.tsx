@@ -1,3 +1,5 @@
+import LecturerProfileLayout from './LecturerProfileLayout'
+import RouteDirections from './RouteDirections'
 import Navbar from './Navbar'
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import Directory from "./Directory"
@@ -46,7 +48,10 @@ function App() {
          <Route path="/map" element={<Map />} />
          <Route
   path="/lecturers/info/:id"
-  element={<LecturersInformation />}/>
+  element={<LecturerProfileLayout />}>
+    <Route index element={<LecturersInformation />} />
+    <Route path="directions" element={<RouteDirections />} />
+  </Route>
        </Routes>
     </BrowserRouter>
   )

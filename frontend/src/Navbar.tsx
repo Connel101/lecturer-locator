@@ -1,37 +1,18 @@
 import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faBars, faBuildingColumns, faCamera, faLocationDot, faUser, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
+import { faBars, faBuildingColumns, faCamera, faUser } from '@fortawesome/free-solid-svg-icons'
 import { Link, NavLink } from 'react-router-dom'
-import { useNavigate,useLocation} from "react-router-dom";
 
 const tabClassName = ({ isActive }: { isActive: boolean }) =>
   `mobile-nav__item${isActive ? ' mobile-nav__item--active' : ''}`
 
 function Navbar() {
-  const navigate = useNavigate();
-  const location = useLocation();
   const [menu, setMenu] = useState(false)
   const [signIn, setSignIn] = useState(false)
-  const isLecturerInfo = location.pathname.startsWith("/lecturers/info/");
 
   return (
     <>
       <nav className="top-nav" aria-label="Main navigation">
-        {isLecturerInfo && (
-          <div className="top-nav__brand ">
-              <button
-    type="button"
-    className="bg-white text-[#6b6375] dark:bg-[#16171d] dark:text-[#9ca3af] cursor-pointer"
-    onClick={() => navigate(-1)}
-    aria-label="Go back"
-  >
-    <FontAwesomeIcon icon={faArrowLeft} />
-  </button>
-          </div>
-          
-        )}
-        {!isLecturerInfo && (
-        <>
         <div className="top-nav__brand">
           <button type="button" onClick={() => setMenu(!menu)} className="top-nav__icon-button" aria-label="Open navigation menu" aria-expanded={menu}>
             <FontAwesomeIcon icon={faBars} />
@@ -39,8 +20,6 @@ function Navbar() {
           <span>LecturerLocator</span>
         </div>
         <Link to="/signin" className="top-nav__icon-button" aria-label="Admin sign in"><FontAwesomeIcon icon={faUser} /></Link>
-        </>
-        )}
 
         {menu && !signIn && (
           <div className="top-nav__menu">

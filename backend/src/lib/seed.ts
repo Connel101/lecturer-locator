@@ -28,7 +28,7 @@ export interface SeedRow {
 }
 
 export interface SeedStore {
-  getOrCreateFloorPlan(input: {
+  saveFloorPlan(input: {
     buildingName: string;
     floorLevel: number;
     fileRef: string;
@@ -37,7 +37,7 @@ export interface SeedStore {
     floorPlanId: number;
     roomNumber: string;
   }): Promise<{ id: number; inserted: boolean }>;
-  getOrCreateLecturer(input: {
+  saveLecturer(input: {
     fullName: string;
     title: string | null;
     department: string | null;
@@ -47,14 +47,15 @@ export interface SeedStore {
     officeId: number;
   }): Promise<{ id: string; inserted: boolean }>;
   getOrCreateModule(code: string): Promise<{ id: number; inserted: boolean }>;
+  removeOtherLecturerModules(lecturerId: string, moduleIds: number[]): Promise<number>;
   ensureLecturerModule(
     lecturerId: string,
     moduleId: number,
   ): Promise<{ inserted: boolean }>;
-  getOrCreateRoute(input: {
+  saveRoute(input: {
     officeId: number;
     entrancePoint: string;
-    svgPath: string;
+    svgOverlay: string;
   }): Promise<{ inserted: boolean }>;
 }
 
@@ -69,6 +70,7 @@ type SeedEntity =
 export interface SeedSummary {
   inserted: Record<SeedEntity, number>;
   reused: Record<SeedEntity, number>;
+  moduleLinksRemoved: number;
   routesSkipped: string[];
 }
 
@@ -280,7 +282,7 @@ export function parseRouteSvg(svg: string, expectedRoom: string): string {
     throw new Error(`Route SVG for ${expectedRoom} does not contain an SVG path.`);
   }
 
-  return route.svgPath.trim();
+  return svg;
 }
 
 function emptyCounts(): Record<SeedEntity, number> {
@@ -310,6 +312,7 @@ export async function seedLecturers(
   const summary: SeedSummary = {
     inserted: emptyCounts(),
     reused: emptyCounts(),
+    moduleLinksRemoved: 0,
     routesSkipped: [],
   };
   const floorPlanIds = new Map<string, number>();
@@ -321,7 +324,7 @@ export async function seedLecturers(
     const key = `${row.buildingName.trim().toUpperCase()}:${row.floorLevel}`;
     if (floorPlanIds.has(key)) continue;
 
-    const result = await store.getOrCreateFloorPlan({
+    const result = await store.saveFloorPlan({
       buildingName: row.buildingName,
       floorLevel: row.floorLevel,
       fileRef: floorPlanFileRef(row.buildingName, row.floorLevel),
@@ -347,7 +350,7 @@ export async function seedLecturers(
     if (lecturerIds.has(row.fullName)) continue;
     const floorKey = `${row.buildingName.trim().toUpperCase()}:${row.floorLevel}`;
     const officeKey = `${floorKey}:${row.roomNumber}`;
-    const result = await store.getOrCreateLecturer({
+    const result = await store.saveLecturer({
       fullName: row.fullName,
       title: row.title,
       department: row.department,
@@ -366,14 +369,11 @@ export async function seedLecturers(
     recordResult(summary, "modules", result.inserted);
   }
 
-  const seenLinks = new Set<string>();
-  for (const row of rows) {
-    const lecturerId = lecturerIds.get(row.fullName)!;
-    for (const code of row.moduleCodes) {
-      const moduleId = moduleIds.get(code)!;
-      const linkKey = `${lecturerId}:${moduleId}`;
-      if (seenLinks.has(linkKey)) continue;
-      seenLinks.add(linkKey);
+  for (const [name, lecturerId] of lecturerIds) {
+    const desiredIds = [...new Set(rows.filter((row) => row.fullName === name)
+      .flatMap((row) => row.moduleCodes).map((code) => moduleIds.get(code)!))];
+    summary.moduleLinksRemoved += await store.removeOtherLecturerModules(lecturerId, desiredIds);
+    for (const moduleId of desiredIds) {
       const result = await store.ensureLecturerModule(lecturerId, moduleId);
       recordResult(summary, "lecturerModules", result.inserted);
     }
@@ -393,10 +393,10 @@ export async function seedLecturers(
       continue;
     }
 
-    const result = await store.getOrCreateRoute({
+    const result = await store.saveRoute({
       officeId,
       entrancePoint: row.entrancePoint,
-      svgPath: parseRouteSvg(svg, row.roomNumber),
+      svgOverlay: parseRouteSvg(svg, row.roomNumber),
     });
     recordResult(summary, "routes", result.inserted);
   }

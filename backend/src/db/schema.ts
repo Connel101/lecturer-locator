@@ -175,9 +175,8 @@ export const routes = pgTable("routes", {
   // For example: "Main Entrance"
   entrancePoint: varchar("entrance_point", { length: 255 }).notNull(),
 
-  // Example:
-  // M 40 200 L 120 200 L 120 350
-  svgPath: text("svg_path").notNull(),
+  // Complete exported overlay, including artwork and editable metadata.
+  svgOverlay: text("svg_overlay"),
 
   createdAt: timestamp("created_at", { withTimezone: true })
     .defaultNow()
