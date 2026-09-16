@@ -1,3 +1,4 @@
+import Scan from './Scan'
 import LecturerProfileLayout from './LecturerProfileLayout'
 import RouteDirections from './RouteDirections'
 import Navbar from './Navbar'
@@ -7,20 +8,9 @@ import SignInOut from "./SignInOut"
 import Lecturers from "./Lecturers"
 import Buildings from "./Buildings"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
-import { faLocationDot, faQrcode } from "@fortawesome/free-solid-svg-icons"
+import { faLocationDot } from "@fortawesome/free-solid-svg-icons"
 import LecturersInformation from './LecturersInformation'
 
-
-function Scan() {
-  return (
-    <main className="page-shell feature-page">
-      <div className="feature-icon" aria-hidden="true"><FontAwesomeIcon icon={faQrcode} /></div>
-      <h1>Scan a lecturer's QR code</h1>
-      <p>Point your camera at the code to find their office.</p>
-      <button type="button" className="primary-button">Open camera</button>
-    </main>
-  )
-}
 
 function Map() {
   return (
