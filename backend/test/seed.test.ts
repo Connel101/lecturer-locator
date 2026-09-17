@@ -3,8 +3,10 @@ import { existsSync, readFileSync } from "node:fs";
 import { test } from "node:test";
 
 import {
+  OFFICE_HOURS_CSV_HEADERS,
   SEED_CSV_HEADERS,
   floorPlanFileRef,
+  parseOfficeHoursCsv,
   parseRouteSvg,
   parseSeedCsv,
   seedLecturers,
@@ -25,7 +27,6 @@ function sampleRow(overrides: Partial<SeedRow> = {}): SeedRow {
     department: "Computer Science",
     moduleCodes: ["CMPG111"],
     researchArea: "Software Engineering",
-    officeHours: "Mon-Wed 10:00-12:00",
     active: true,
     buildingName: "G3",
     floorLevel: 0,
@@ -50,6 +51,10 @@ class MemorySeedStore implements SeedStore {
   >();
   modules = new Map<string, number>();
   lecturerModules = new Set<string>();
+  lecturerOfficeHours = new Map<
+    string,
+    { dayOfWeek: number; startTime: string; endTime: string }[]
+  >();
   routes = new Map<number, { entrancePoint: string; svgOverlay: string | null }>();
 
   async saveFloorPlan(input: {
@@ -100,6 +105,13 @@ class MemorySeedStore implements SeedStore {
     return { id, inserted: true };
   }
 
+  async replaceLecturerOfficeHours(
+    lecturerId: string,
+    officeHours: { dayOfWeek: number; startTime: string; endTime: string }[],
+  ) {
+    this.lecturerOfficeHours.set(lecturerId, structuredClone(officeHours));
+  }
+
   async removeOtherLecturerModules(lecturerId: string, moduleIds: number[]) {
     const desired = new Set(moduleIds.map((id) => `${lecturerId}:${id}`));
     let removed = 0;
@@ -139,7 +151,7 @@ class MemorySeedStore implements SeedStore {
 test("parses quoted CSV fields, escaped quotes, CRLF, modules, and empty values", () => {
   const csv =
     `${header}\r\n` +
-    '"Nkosi, Thabo",Senior Lecturer,Computer Science,CMPG111; CMPG222,"Data, systems",,Inactive,G3,-1,B01,Main Entrance,"Says ""hello"""\r\n';
+    '"Nkosi, Thabo",Senior Lecturer,Computer Science,CMPG111; CMPG222,"Data, systems",Inactive,G3,-1,B01,Main Entrance,"Says ""hello"""\r\n';
 
   assert.deepEqual(parseSeedCsv(csv), [
     {
@@ -148,7 +160,6 @@ test("parses quoted CSV fields, escaped quotes, CRLF, modules, and empty values"
       department: "Computer Science",
       moduleCodes: ["CMPG111", "CMPG222"],
       researchArea: "Data, systems",
-      officeHours: null,
       active: false,
       buildingName: "G3",
       floorLevel: -1,
@@ -168,16 +179,39 @@ test("rejects malformed quoting, statuses, and floor levels", () => {
   assert.throws(
     () =>
       parseSeedCsv(
-        `${header}\nThabo,Lecturer,Science,CMPG111,AI,,Unknown,G3,0,G03,Main Entrance,Text`,
+        `${header}\nThabo,Lecturer,Science,CMPG111,AI,Unknown,G3,0,G03,Main Entrance,Text`,
       ),
     /Status must be Active or Inactive/,
   );
   assert.throws(
     () =>
       parseSeedCsv(
-        `${header}\nThabo,Lecturer,Science,CMPG111,AI,,Active,G3,ground,G03,Main Entrance,Text`,
+        `${header}\nThabo,Lecturer,Science,CMPG111,AI,Active,G3,ground,G03,Main Entrance,Text`,
       ),
     /Floor Level must be an integer/,
+  );
+});
+
+test("parses structured office hours and rejects invalid ranges", () => {
+  const header = OFFICE_HOURS_CSV_HEADERS.join(",");
+  assert.deepEqual(
+    parseOfficeHoursCsv(`${header}\nThabo Nkosi,1,09:00,10:00`),
+    [
+      {
+        lecturerName: "Thabo Nkosi",
+        dayOfWeek: 1,
+        startTime: "09:00",
+        endTime: "10:00",
+      },
+    ],
+  );
+  assert.throws(
+    () => parseOfficeHoursCsv(`${header}\nThabo Nkosi,8,09:00,10:00`),
+    /integer from 1 to 7/,
+  );
+  assert.throws(
+    () => parseOfficeHoursCsv(`${header}\nThabo Nkosi,1,10:00,09:00`),
+    /End Time must be after Start Time/,
   );
 });
 
@@ -228,6 +262,50 @@ test("repeated seeds refresh values while adding missing links and routes", asyn
   assert.equal(store.routes.values().next().value?.svgOverlay, routeSvg("G03", "M changed"));
 });
 
+test("repeated seeds replace structured office hours without changing lecturer IDs", async () => {
+  const store = new MemorySeedStore();
+  const firstHours = [
+    {
+      lecturerName: "Thabo Nkosi",
+      dayOfWeek: 1,
+      startTime: "09:00",
+      endTime: "10:00",
+    },
+    {
+      lecturerName: "Thabo Nkosi",
+      dayOfWeek: 1,
+      startTime: "14:00",
+      endTime: "15:00",
+    },
+  ];
+  await seedLecturers([sampleRow()], store, async () => null, firstHours);
+  const lecturerId = store.lecturers.get("Thabo Nkosi")!.id;
+  assert.deepEqual(store.lecturerOfficeHours.get(lecturerId), [
+    { dayOfWeek: 1, startTime: "09:00", endTime: "10:00" },
+    { dayOfWeek: 1, startTime: "14:00", endTime: "15:00" },
+  ]);
+
+  const replacementHours = [
+    {
+      lecturerName: "Thabo Nkosi",
+      dayOfWeek: 2,
+      startTime: "14:00",
+      endTime: "16:00",
+    },
+  ];
+  const result = await seedLecturers(
+    [sampleRow()],
+    store,
+    async () => null,
+    replacementHours,
+  );
+  assert.equal(store.lecturers.get("Thabo Nkosi")!.id, lecturerId);
+  assert.deepEqual(store.lecturerOfficeHours.get(lecturerId), [
+    { dayOfWeek: 2, startTime: "14:00", endTime: "16:00" },
+  ]);
+  assert.equal(result.officeHoursRefreshed, 1);
+});
+
 test("fails instead of silently skipping a malformed route asset", async () => {
   await assert.rejects(
     seedLecturers([sampleRow()], new MemorySeedStore(), async () => "<svg />"),
@@ -237,8 +315,16 @@ test("fails instead of silently skipping a malformed route asset", async () => {
 
 test("the checked-in sample CSV and available room route assets are valid", () => {
   const csvPath = new URL("../data/sample-lecturers.csv", import.meta.url);
+  const officeHoursCsvPath = new URL(
+    "../data/sample-office-hours.csv",
+    import.meta.url,
+  );
   const routeDirectory = new URL("../src/data/floorplans/", import.meta.url);
   const rows = parseSeedCsv(readFileSync(csvPath, "utf8"));
+  const officeHourRows = parseOfficeHoursCsv(
+    readFileSync(officeHoursCsvPath, "utf8"),
+  );
+  const lecturerNames = new Set(rows.map((row) => row.fullName));
   const missingRoutes: string[] = [];
 
   for (const row of rows) {
@@ -251,6 +337,13 @@ test("the checked-in sample CSV and available room route assets are valid", () =
   }
 
   assert.equal(rows.length, 11);
+  assert.equal(officeHourRows.length, 21);
+  assert.equal(
+    officeHourRows.every((officeHour) =>
+      lecturerNames.has(officeHour.lecturerName),
+    ),
+    true,
+  );
   assert.deepEqual(missingRoutes, ["B01"]);
 });
 
@@ -276,7 +369,7 @@ test("refresh preserves IDs and unrelated lecturers while syncing office and mod
   const original = { ...store.lecturers.get("Thabo Nkosi")! };
   const manual = { ...store.lecturers.get("Manual lecturer")! };
   const manualLinks = [...store.lecturerModules].filter((link) => link.startsWith(manual.id + ":"));
-  const updated = sampleRow({ title: null, officeHours: null, roomNumber: "G04", moduleCodes: ["CMPG222"] });
+  const updated = sampleRow({ title: null, roomNumber: "G04", moduleCodes: ["CMPG222"] });
   const result = await seedLecturers([updated], store, async () => routeSvg("G04"));
   const lecturer = store.lecturers.get("Thabo Nkosi")!;
   assert.equal(lecturer.id, original.id);

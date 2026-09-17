@@ -1,4 +1,5 @@
 import {
+  check,
   pgTable,
   uuid,
   serial,
@@ -7,9 +8,11 @@ import {
   boolean,
   integer,
   timestamp,
+  time,
   primaryKey,
   unique,
 } from "drizzle-orm/pg-core";
+import { sql } from "drizzle-orm";
 
 /**
  * Floor Plans
@@ -96,8 +99,6 @@ export const lecturers = pgTable("lecturers", {
 
   researchArea: text("research_area"),
 
-  officeHours: text("office_hours"),
-
   active: boolean("active").default(true).notNull(),
 
   officeId: integer("office_id").references(() => offices.id, {
@@ -112,6 +113,47 @@ export const lecturers = pgTable("lecturers", {
     .defaultNow()
     .notNull(),
 });
+
+/**
+ * Lecturer Office Hours
+ *
+ * Stores recurring weekly availability. Days use ISO numbering:
+ * Monday = 1 through Sunday = 7.
+ */
+export const lecturerOfficeHours = pgTable(
+  "lecturer_office_hours",
+  {
+    lecturerId: uuid("lecturer_id")
+      .notNull()
+      .references(() => lecturers.id, {
+        onDelete: "cascade",
+      }),
+
+    dayOfWeek: integer("day_of_week").notNull(),
+
+    startTime: time("start_time").notNull(),
+
+    endTime: time("end_time").notNull(),
+  },
+  (table) => [
+    primaryKey({
+      columns: [
+        table.lecturerId,
+        table.dayOfWeek,
+        table.startTime,
+        table.endTime,
+      ],
+    }),
+    check(
+      "lecturer_office_hours_day_of_week_check",
+      sql`${table.dayOfWeek} between 1 and 7`,
+    ),
+    check(
+      "lecturer_office_hours_time_range_check",
+      sql`${table.endTime} > ${table.startTime}`,
+    ),
+  ],
+);
 
 /**
  * Modules

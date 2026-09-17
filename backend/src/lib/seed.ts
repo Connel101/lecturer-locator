@@ -4,7 +4,6 @@ export const SEED_CSV_HEADERS = [
   "Department or Faculty",
   "Modules Taught",
   "Research Area",
-  "Office Hours",
   "Status",
   "Building Name",
   "Floor Level",
@@ -13,18 +12,31 @@ export const SEED_CSV_HEADERS = [
   "Short Description",
 ] as const;
 
+export const OFFICE_HOURS_CSV_HEADERS = [
+  "Lecturer Name",
+  "Day of Week",
+  "Start Time",
+  "End Time",
+] as const;
+
 export interface SeedRow {
   fullName: string;
   title: string | null;
   department: string | null;
   moduleCodes: string[];
   researchArea: string | null;
-  officeHours: string | null;
   active: boolean;
   buildingName: string;
   floorLevel: number;
   roomNumber: string;
   entrancePoint: string;
+}
+
+export interface OfficeHourSeedRow {
+  lecturerName: string;
+  dayOfWeek: number;
+  startTime: string;
+  endTime: string;
 }
 
 export interface SeedStore {
@@ -42,10 +54,13 @@ export interface SeedStore {
     title: string | null;
     department: string | null;
     researchArea: string | null;
-    officeHours: string | null;
     active: boolean;
     officeId: number;
   }): Promise<{ id: string; inserted: boolean }>;
+  replaceLecturerOfficeHours(
+    lecturerId: string,
+    officeHours: Omit<OfficeHourSeedRow, "lecturerName">[],
+  ): Promise<void>;
   getOrCreateModule(code: string): Promise<{ id: number; inserted: boolean }>;
   removeOtherLecturerModules(lecturerId: string, moduleIds: number[]): Promise<number>;
   ensureLecturerModule(
@@ -71,6 +86,7 @@ export interface SeedSummary {
   inserted: Record<SeedEntity, number>;
   reused: Record<SeedEntity, number>;
   moduleLinksRemoved: number;
+  officeHoursRefreshed: number;
   routesSkipped: string[];
 }
 
@@ -198,12 +214,12 @@ export function parseSeedCsv(csv: string): SeedRow[] {
       );
     }
 
-    const status = required(values[6], "Status", rowLine).toLowerCase();
+    const status = required(values[5], "Status", rowLine).toLowerCase();
     if (status !== "active" && status !== "inactive") {
       throw new Error(`Status must be Active or Inactive on CSV line ${rowLine}.`);
     }
 
-    const floorValue = required(values[8], "Floor Level", rowLine);
+    const floorValue = required(values[7], "Floor Level", rowLine);
     if (!/^-?\d+$/.test(floorValue)) {
       throw new Error(`Floor Level must be an integer on CSV line ${rowLine}.`);
     }
@@ -221,12 +237,66 @@ export function parseSeedCsv(csv: string): SeedRow[] {
         ),
       ],
       researchArea: optional(values[4]),
-      officeHours: optional(values[5]),
       active: status === "active",
-      buildingName: required(values[7], "Building Name", rowLine),
+      buildingName: required(values[6], "Building Name", rowLine),
       floorLevel: Number.parseInt(floorValue, 10),
-      roomNumber: required(values[9], "Room Number", rowLine),
-      entrancePoint: required(values[10], "Designated Entrance", rowLine),
+      roomNumber: required(values[8], "Room Number", rowLine),
+      entrancePoint: required(values[9], "Designated Entrance", rowLine),
+    };
+  });
+}
+
+function parseTime(value: string, header: string, line: number): string {
+  const normalized = required(value, header, line);
+  if (!/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(normalized)) {
+    throw new Error(`${header} must use HH:MM on CSV line ${line}.`);
+  }
+  return normalized;
+}
+
+export function parseOfficeHoursCsv(csv: string): OfficeHourSeedRow[] {
+  const rows = parseCsvRows(csv.replace(/^\uFEFF/, ""));
+  const headerRow = rows.shift();
+
+  if (!headerRow) {
+    throw new Error("The office-hours seed CSV is empty.");
+  }
+
+  const actualHeaders = headerRow.values.map((header) => header.trim());
+  if (
+    actualHeaders.length !== OFFICE_HOURS_CSV_HEADERS.length ||
+    actualHeaders.some(
+      (header, index) => header !== OFFICE_HOURS_CSV_HEADERS[index],
+    )
+  ) {
+    throw new Error(
+      `Invalid office-hours CSV headers. Expected: ${OFFICE_HOURS_CSV_HEADERS.join(", ")}.`,
+    );
+  }
+
+  return rows.map(({ line: rowLine, values }) => {
+    if (values.length !== OFFICE_HOURS_CSV_HEADERS.length) {
+      throw new Error(
+        `Office-hours CSV line ${rowLine} has ${values.length} columns; expected ${OFFICE_HOURS_CSV_HEADERS.length}.`,
+      );
+    }
+
+    const dayValue = required(values[1], "Day of Week", rowLine);
+    if (!/^[1-7]$/.test(dayValue)) {
+      throw new Error(`Day of Week must be an integer from 1 to 7 on CSV line ${rowLine}.`);
+    }
+
+    const startTime = parseTime(values[2], "Start Time", rowLine);
+    const endTime = parseTime(values[3], "End Time", rowLine);
+    if (endTime <= startTime) {
+      throw new Error(`End Time must be after Start Time on CSV line ${rowLine}.`);
+    }
+
+    return {
+      lecturerName: required(values[0], "Lecturer Name", rowLine),
+      dayOfWeek: Number.parseInt(dayValue, 10),
+      startTime,
+      endTime,
     };
   });
 }
@@ -308,11 +378,13 @@ export async function seedLecturers(
   rows: SeedRow[],
   store: SeedStore,
   loadRouteSvg: (roomNumber: string) => Promise<string | null>,
+  officeHourRows: OfficeHourSeedRow[] = [],
 ): Promise<SeedSummary> {
   const summary: SeedSummary = {
     inserted: emptyCounts(),
     reused: emptyCounts(),
     moduleLinksRemoved: 0,
+    officeHoursRefreshed: 0,
     routesSkipped: [],
   };
   const floorPlanIds = new Map<string, number>();
@@ -355,12 +427,33 @@ export async function seedLecturers(
       title: row.title,
       department: row.department,
       researchArea: row.researchArea,
-      officeHours: row.officeHours,
       active: row.active,
       officeId: officeIds.get(officeKey)!,
     });
     lecturerIds.set(row.fullName, result.id);
     recordResult(summary, "lecturers", result.inserted);
+  }
+
+  const knownLecturerNames = new Set(lecturerIds.keys());
+  const unknownOfficeHourLecturer = officeHourRows.find(
+    (officeHour) => !knownLecturerNames.has(officeHour.lecturerName),
+  );
+  if (unknownOfficeHourLecturer) {
+    throw new Error(
+      `Office hours reference unknown lecturer ${unknownOfficeHourLecturer.lecturerName}.`,
+    );
+  }
+
+  for (const [name, lecturerId] of lecturerIds) {
+    const officeHours = officeHourRows
+      .filter((officeHour) => officeHour.lecturerName === name)
+      .map(({ dayOfWeek, startTime, endTime }) => ({
+        dayOfWeek,
+        startTime,
+        endTime,
+      }));
+    await store.replaceLecturerOfficeHours(lecturerId, officeHours);
+    summary.officeHoursRefreshed += officeHours.length;
   }
 
   for (const code of new Set(rows.flatMap((row) => row.moduleCodes))) {
