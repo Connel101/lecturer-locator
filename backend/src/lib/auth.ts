@@ -11,6 +11,11 @@ const schema = {
 };
 
 export const auth = betterAuth({
+  trustedOrigins:
+  process.env.NODE_ENV === "production"
+    ? []
+    : ["http://localhost:5173"],
+    
   database: drizzleAdapter(db, {
     provider: "pg",
     schema,

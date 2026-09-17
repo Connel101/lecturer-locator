@@ -2,13 +2,15 @@ import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faBuildingColumns, faCamera, faUser } from '@fortawesome/free-solid-svg-icons'
 import { Link, NavLink } from 'react-router-dom'
+import { authClient } from "./lib/auth-client";
 
 const tabClassName = ({ isActive }: { isActive: boolean }) =>
   `mobile-nav__item${isActive ? ' mobile-nav__item--active' : ''}`
 
 function Navbar() {
   const [menu, setMenu] = useState(false)
-  const [signIn, setSignIn] = useState(false)
+  const { data: session } = authClient.useSession();
+  const [usermenu, setUserMenu] = useState(false)
 
   return (
     <>
@@ -19,19 +21,41 @@ function Navbar() {
           </button>
           <span>LecturerLocator</span>
         </div>
-        <Link to="/signin" className="top-nav__icon-button" aria-label="Admin sign in"><FontAwesomeIcon icon={faUser} /></Link>
 
-        {menu && !signIn && (
-          <div className="top-nav__menu">
-            <Link to="/directory" onClick={() => setMenu(false)}>Directory</Link>
-            <Link to="/signin" onClick={() => { setMenu(false); setSignIn(true) }}>Admin sign in</Link>
+        
+        <button onClick={() => setUserMenu(!usermenu)} className="top-nav__icon-button" aria-label="Admin sign in"><FontAwesomeIcon icon={faUser} /></button>
+        {usermenu && session && (
+          <div className="top-user__menu">
+            
+            <Link to="/" onClick={() => setUserMenu(false)}>Profile</Link>
+            <Link to="/signin"
+            onClick={async () => {
+              await authClient.signOut();
+              setUserMenu(false);
+            }}
+            className="text-red-600"
+          >
+            Sign Out
+          </Link>
           </div>
         )}
-        {menu && signIn && (
+
+        {usermenu && !session && (
+          <div className="top-user__menu">
+            <Link to="/signin" onClick={() => { setUserMenu(false) }}>Sign In</Link>
+            
+          </div>
+        )}
+        {menu && !session && (
+          <div className="top-nav__menu">
+            <Link to="/directory" onClick={() => setMenu(false)}>Directory</Link>
+          </div>
+        )}
+        {menu && session && (
           <div className="top-nav__menu">
             <Link to="/lecturers" onClick={() => setMenu(false)}>Lecturers</Link>
             <Link to="/buildings" onClick={() => setMenu(false)}>Buildings</Link>
-            <Link to="/directory" onClick={() => { setMenu(false); setSignIn(false) }}>Sign out</Link>
+            
           </div>
         )}
       </nav>
