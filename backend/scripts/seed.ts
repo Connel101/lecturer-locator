@@ -7,6 +7,7 @@ import { and, eq, notInArray } from "drizzle-orm";
 
 import {
   floorPlans,
+  lecturerOfficeHours,
   lecturerModules,
   lecturers,
   modules,
@@ -16,12 +17,16 @@ import {
 import { db } from "../src/lib/db.ts";
 import {
   parseSeedCsv,
+  parseOfficeHoursCsv,
   seedLecturers,
   type SeedStore,
   type SeedSummary,
 } from "../src/lib/seed.ts";
 
 const csvPath = fileURLToPath(new URL("../data/sample-lecturers.csv", import.meta.url));
+const officeHoursCsvPath = fileURLToPath(
+  new URL("../data/sample-office-hours.csv", import.meta.url),
+);
 const routeDirectory = new URL("../src/data/floorplans/", import.meta.url);
 
 function formatCounts(summary: SeedSummary): string[] {
@@ -47,6 +52,9 @@ async function main(): Promise<void> {
   }
 
   const rows = parseSeedCsv(await readFile(csvPath, "utf8"));
+  const officeHourRows = parseOfficeHoursCsv(
+    await readFile(officeHoursCsvPath, "utf8"),
+  );
 
   const summary = await db.transaction(async (tx) => {
     const store: SeedStore = {
@@ -104,6 +112,17 @@ async function main(): Promise<void> {
         return { id: created.id, inserted: true };
       },
 
+      async replaceLecturerOfficeHours(lecturerId, officeHours) {
+        await tx
+          .delete(lecturerOfficeHours)
+          .where(eq(lecturerOfficeHours.lecturerId, lecturerId));
+        if (officeHours.length > 0) {
+          await tx.insert(lecturerOfficeHours).values(
+            officeHours.map((officeHour) => ({ lecturerId, ...officeHour })),
+          );
+        }
+      },
+
       async getOrCreateModule(code) {
         const [existing] = await tx
           .select({ id: modules.id })
@@ -159,12 +178,13 @@ async function main(): Promise<void> {
         if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
         throw error;
       }
-    });
+    }, officeHourRows);
   });
 
   console.log("Development seed complete.");
   console.log(formatCounts(summary).join("\n"));
   console.log(`  obsolete module links removed: ${summary.moduleLinksRemoved}`);
+  console.log(`  office-hour ranges refreshed: ${summary.officeHoursRefreshed}`);
   if (summary.routesSkipped.length > 0) {
     console.warn(`  routes skipped (missing SVG): ${summary.routesSkipped.join(", ")}`);
   }

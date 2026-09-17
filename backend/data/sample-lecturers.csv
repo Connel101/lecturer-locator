@@ -1,12 +1,12 @@
-Full Name,Academic Title,Department or Faculty,Modules Taught,Research Area,Office Hours,Status,Building Name,Floor Level,Room Number,Designated Entrance,Short Description
-Thabo Nkosi,Senior Lecturer,Computer Science,CMPG111,Software Engineering,Mon-Wed 10:00-12:00,Active,G3,0,G03,Main Entrance,Enjoys turning messy code into clean architecture one refactor at a time.
-Elena Botha,Lecturer,Computer Science,CMPG213,Human-Computer Interaction,Tue-Thu 13:00-15:00,Active,G3,0,G05,Main Entrance,Believes every good interface starts with a terrible first draft.
-Johan Pretorius,Associate Professor,Information Technology,CMPG321,Cybersecurity,Mon 09:00-11:00,Inactive,G3,0,G08,Main Entrance,On sabbatical this semester writing his next textbook.
-Naledi Dlamini,Lecturer,Computer Science,CMPG222,Data Science,,Active,G3,0,G17,Main Entrance,Prefers messaging students over scheduling fixed hours.
-Werner van Zyl,Lecturer,Information Technology,CMPG132,,Wed 14:00-16:00,Active,G3,0,G20,Main Entrance,Still deciding on a research niche after switching focus last year.
-Amahle Khumalo,Senior Lecturer,Computer Science,CMPG111;CMPG121;CMPG222,Artificial Intelligence,Tue 10:00-12:00,Active,G3,0,G23,Main Entrance,Runs three research groups and somehow keeps them all on schedule.
-Pieter de Wet,Lecturer,Information Technology,CMPG311,Networks,Thu 09:00-11:00,Active,G3,-1,B01,Main Entrance,Recently moved to the basement office and is still finding his way around.
-Sarah Mokoena,Lecturer,Computer Science,CMPG223,Databases,Mon-Tue 11:00-13:00,Active,G3,0,G02,Main Entrance,Insists every dataset has a story even the boring ones.
-David Fourie,Professor,Information Technology,CMPG322,Cloud Computing,Wed-Fri 09:00-10:00,Active,G3,0,G09,Main Entrance,Has migrated more systems to the cloud than he can count.
-Zanele Ngcobo,Lecturer,Electronic Engineering,CMPG231,Embedded Systems,Tue 14:00-16:00,Active,G3,0,G24,Main Entrance,Builds circuits by day and debugs them by night.
-Kagiso Molefe,Senior Lecturer,Computer Science,CMPG112;CMPG214,Computer Graphics,Mon-Fri 08:00-09:00,Active,G3,0,G27,Main Entrance,Teaches two modules and still finds time to play with shaders.
+Full Name,Academic Title,Department or Faculty,Modules Taught,Research Area,Status,Building Name,Floor Level,Room Number,Designated Entrance,Short Description
+Thabo Nkosi,Senior Lecturer,Computer Science,CMPG111,Software Engineering,Active,G3,0,G03,Main Entrance,Enjoys turning messy code into clean architecture one refactor at a time.
+Elena Botha,Lecturer,Computer Science,CMPG213,Human-Computer Interaction,Active,G3,0,G05,Main Entrance,Believes every good interface starts with a terrible first draft.
+Johan Pretorius,Associate Professor,Information Technology,CMPG321,Cybersecurity,Inactive,G3,0,G08,Main Entrance,On sabbatical this semester writing his next textbook.
+Naledi Dlamini,Lecturer,Computer Science,CMPG222,Data Science,Active,G3,0,G17,Main Entrance,Prefers messaging students over scheduling fixed hours.
+Werner van Zyl,Lecturer,Information Technology,CMPG132,,Active,G3,0,G20,Main Entrance,Still deciding on a research niche after switching focus last year.
+Amahle Khumalo,Senior Lecturer,Computer Science,CMPG111;CMPG121;CMPG222,Artificial Intelligence,Active,G3,0,G23,Main Entrance,Runs three research groups and somehow keeps them all on schedule.
+Pieter de Wet,Lecturer,Information Technology,CMPG311,Networks,Active,G3,-1,B01,Main Entrance,Recently moved to the basement office and is still finding his way around.
+Sarah Mokoena,Lecturer,Computer Science,CMPG223,Databases,Active,G3,0,G02,Main Entrance,Insists every dataset has a story even the boring ones.
+David Fourie,Professor,Information Technology,CMPG322,Cloud Computing,Active,G3,0,G09,Main Entrance,Has migrated more systems to the cloud than he can count.
+Zanele Ngcobo,Lecturer,Electronic Engineering,CMPG231,Embedded Systems,Active,G3,0,G24,Main Entrance,Builds circuits by day and debugs them by night.
+Kagiso Molefe,Senior Lecturer,Computer Science,CMPG112;CMPG214,Computer Graphics,Active,G3,0,G27,Main Entrance,Teaches two modules and still finds time to play with shaders.

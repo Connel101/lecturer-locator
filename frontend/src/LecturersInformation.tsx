@@ -9,6 +9,16 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLecturerProfile } from './lecturer-profile';
 
+const dayNames = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday',
+]
+
 function LecturersInformation() {
   const lecturer = useLecturerProfile();
   const photoUrl = lecturer.photoUrl?.trim();
@@ -110,7 +120,7 @@ function LecturersInformation() {
 
        {/* Office Hours */}
 
-       {lecturer.officeHours && (
+       {lecturer.officeHours.length > 0 && (
        <section className="mt-3 rounded-[5px] border border-[#ece7ed] bg-white p-3 shadow-sm md:col-span-2">
          <div className="flex items-center justify-between">
            <h2 className=" font-bold text-[#4b145f]">
@@ -120,14 +130,20 @@ function LecturersInformation() {
          </div>
 
          <div className="mt-2 divide-y divide-[#eee9ef] ">     
-            <div className="flex items-center justify-between py-1.5">
+            {lecturer.officeHours.map((officeHour) => (
+            <div
+              className="flex items-center justify-between py-1.5"
+              key={`${officeHour.dayOfWeek}-${officeHour.startTime}-${officeHour.endTime}`}
+            >
               <span className="font-medium text-[#4c3d50]">
+                {dayNames[officeHour.dayOfWeek - 1]}
               </span>
 
               <span className="text-[#695c6c]">
-                 {lecturer.officeHours}
+                 {officeHour.startTime}–{officeHour.endTime}
                </span>
             </div>
+            ))}
           </div>
         </section>
        )}

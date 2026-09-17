@@ -9,7 +9,7 @@ export interface LecturerProfile {
   department: string | null
   modules: { code: string; name?: string }[]
   researchArea?: string
-  officeHours?: string
+  officeHours: { dayOfWeek: number; startTime: string; endTime: string }[]
   office: { buildingName: string | null; floorLevel: number | null; roomNumber: string } | null
   route: {
     floorPlan: { buildingName: string; floorLevel: number; fileRef: string }
@@ -21,4 +21,3 @@ export interface LecturerProfile {
 export function useLecturerProfile() {
   return useOutletContext<LecturerProfile>()
 }
-
