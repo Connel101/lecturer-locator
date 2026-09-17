@@ -3,6 +3,7 @@ import type { Request, Response } from "express";
 
 import {
   floorPlans,
+  lecturerOfficeHours,
   lecturerModules,
   lecturers,
   modules,
@@ -110,7 +111,6 @@ export async function getLecturerProfile(
         title: lecturers.title,
         department: lecturers.department,
         researchArea: lecturers.researchArea,
-        officeHours: lecturers.officeHours,
         buildingName: floorPlans.buildingName,
         floorLevel: floorPlans.floorLevel,
         floorPlanFileRef: floorPlans.fileRef,
@@ -132,15 +132,29 @@ export async function getLecturerProfile(
       return;
     }
 
-    const lecturerModuleRows = await db
-      .select({
-        code: modules.code,
-        name: modules.name,
-      })
-      .from(lecturerModules)
-      .innerJoin(modules, eq(lecturerModules.moduleId, modules.id))
-      .where(eq(lecturerModules.lecturerId, lecturerId))
-      .orderBy(asc(modules.code));
+    const [lecturerModuleRows, officeHourRows] = await Promise.all([
+      db
+        .select({
+          code: modules.code,
+          name: modules.name,
+        })
+        .from(lecturerModules)
+        .innerJoin(modules, eq(lecturerModules.moduleId, modules.id))
+        .where(eq(lecturerModules.lecturerId, lecturerId))
+        .orderBy(asc(modules.code)),
+      db
+        .select({
+          dayOfWeek: lecturerOfficeHours.dayOfWeek,
+          startTime: lecturerOfficeHours.startTime,
+          endTime: lecturerOfficeHours.endTime,
+        })
+        .from(lecturerOfficeHours)
+        .where(eq(lecturerOfficeHours.lecturerId, lecturerId))
+        .orderBy(
+          asc(lecturerOfficeHours.dayOfWeek),
+          asc(lecturerOfficeHours.startTime),
+        ),
+    ]);
 
     res.status(200).json({
       id: profile.id,
@@ -154,7 +168,11 @@ export async function getLecturerProfile(
       ...(profile.researchArea !== null && {
         researchArea: profile.researchArea,
       }),
-      ...(profile.officeHours !== null && { officeHours: profile.officeHours }),
+      officeHours: officeHourRows.map((officeHour) => ({
+        dayOfWeek: officeHour.dayOfWeek,
+        startTime: officeHour.startTime.slice(0, 5),
+        endTime: officeHour.endTime.slice(0, 5),
+      })),
       office:
         profile.roomNumber === null
           ? null
