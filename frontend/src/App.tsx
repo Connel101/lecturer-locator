@@ -10,6 +10,7 @@ import Buildings from "./Buildings"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationDot } from "@fortawesome/free-solid-svg-icons"
 import LecturersInformation from './LecturersInformation'
+import ProtectedRoute from "./ProtectedRoute";
 
 
 function Map() {
@@ -26,23 +27,27 @@ function App() {
   return (
     
    <BrowserRouter>
-       <Navbar />
+    <Navbar />
 
-       <Routes>
-        <Route path="/" element={<Directory />} />
-       <Route path="/directory" element={<Directory />} />
-        <Route path="/signin" element={<SignInOut />} />
-         <Route path="/lecturers" element={<Lecturers />} />
-         <Route path="/buildings" element={<Buildings />} /> 
-         <Route path="/scan" element={<Scan />} />
-         <Route path="/map" element={<Map />} />
-         <Route
-  path="/lecturers/info/:id"
-  element={<LecturerProfileLayout />}>
-    <Route index element={<LecturersInformation />} />
-    <Route path="directions" element={<RouteDirections />} />
-  </Route>
-       </Routes>
+    <Routes>
+      <Route path="/" element={<Directory />} />
+      <Route path="/directory" element={<Directory />} />
+      <Route path="/signin" element={<SignInOut />} />     
+      <Route path="/scan" element={<Scan />} />
+      <Route path="/map" element={<Map />} />  
+      <Route
+      path="/lecturers/info/:id"
+      element={<LecturerProfileLayout />}>
+      <Route index element={<LecturersInformation />} />
+      <Route path="directions" element={<RouteDirections />} /></Route>
+
+      <Route element={<ProtectedRoute />}>
+      <Route path="/lecturers" element={<Lecturers />} />
+      <Route path="/buildings" element={<Buildings />} /> 
+      </Route>
+    </Routes>
+
+       
     </BrowserRouter>
   )
 }
