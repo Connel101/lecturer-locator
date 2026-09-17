@@ -199,3 +199,32 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
 .route-map img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; }
 .route-figure figcaption { margin-top: .75rem; color: #716777; font-size: .9rem; }
 .directions-page .primary-button { margin-top: 1rem; min-height: 44px; }
+
+.scanner-frame {
+  position: relative;
+  width: min(100%, 28rem);
+  aspect-ratio: 4 / 3;
+  margin-bottom: 1.5rem;
+  overflow: hidden;
+  background: #1f1923;
+  border: 2px solid #dccce5;
+  border-radius: 1rem;
+}
+
+.scanner-video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.scanner-placeholder {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  color: #eee7f1;
+  background: #1f1923;
+  text-align: center;
+}
