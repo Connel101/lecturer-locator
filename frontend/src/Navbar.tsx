@@ -28,15 +28,16 @@ function Navbar() {
           <div className="top-user__menu">
             
             <Link to="/" onClick={() => setUserMenu(false)}>Profile</Link>
-            <Link to="/signin"
+            <p
             onClick={async () => {
               await authClient.signOut();
               setUserMenu(false);
+              window.location.reload();
+              window.location.href = "/signin";
             }}
-            className="text-red-600"
           >
             Sign Out
-          </Link>
+          </p>
           </div>
         )}
 
