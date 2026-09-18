@@ -54,8 +54,7 @@ function Directory() {
 
   return (
     <main className="page-shell">
-      <p className="eyebrow">Campus directory</p>
-      <h1>Find your lecturer</h1>
+      <h1 className="text-2xl font-bold text-[#4b145f]">Lecturer management</h1>
       <p className="page-intro">
         Search the directory or scan their QR code to get directions to their office.
       </p>
