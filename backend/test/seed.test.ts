@@ -25,6 +25,8 @@ function sampleRow(overrides: Partial<SeedRow> = {}): SeedRow {
     fullName: "Thabo Nkosi",
     title: "Senior Lecturer",
     department: "Computer Science",
+    email: "thabo.nkosi@example.edu",
+    officePhone: "+27 18 000 0001",
     moduleCodes: ["CMPG111"],
     researchArea: "Software Engineering",
     active: true,
@@ -45,6 +47,8 @@ class MemorySeedStore implements SeedStore {
     {
       id: string;
       title: string | null;
+      email: string | null;
+      officePhone: string | null;
       active: boolean;
       officeId: number;
     }
@@ -82,6 +86,8 @@ class MemorySeedStore implements SeedStore {
   async saveLecturer(input: {
     fullName: string;
     title: string | null;
+    email: string | null;
+    officePhone: string | null;
     active: boolean;
     officeId: number;
   }) {
@@ -90,6 +96,8 @@ class MemorySeedStore implements SeedStore {
     const created = {
       id: `lecturer-${this.nextId++}`,
       title: input.title,
+      email: input.email,
+      officePhone: input.officePhone,
       active: input.active,
       officeId: input.officeId,
     };
@@ -151,13 +159,15 @@ class MemorySeedStore implements SeedStore {
 test("parses quoted CSV fields, escaped quotes, CRLF, modules, and empty values", () => {
   const csv =
     `${header}\r\n` +
-    '"Nkosi, Thabo",Senior Lecturer,Computer Science,CMPG111; CMPG222,"Data, systems",Inactive,G3,-1,B01,Main Entrance,"Says ""hello"""\r\n';
+    '"Nkosi, Thabo",Senior Lecturer,Computer Science, nkosi@example.edu , +27 18 000 0001 ,CMPG111; CMPG222,"Data, systems",Inactive,G3,-1,B01,Main Entrance,"Says ""hello"""\r\n';
 
   assert.deepEqual(parseSeedCsv(csv), [
     {
       fullName: "Nkosi, Thabo",
       title: "Senior Lecturer",
       department: "Computer Science",
+      email: "nkosi@example.edu",
+      officePhone: "+27 18 000 0001",
       moduleCodes: ["CMPG111", "CMPG222"],
       researchArea: "Data, systems",
       active: false,
@@ -179,14 +189,14 @@ test("rejects malformed quoting, statuses, and floor levels", () => {
   assert.throws(
     () =>
       parseSeedCsv(
-        `${header}\nThabo,Lecturer,Science,CMPG111,AI,Unknown,G3,0,G03,Main Entrance,Text`,
+        `${header}\nThabo,Lecturer,Science,,,CMPG111,AI,Unknown,G3,0,G03,Main Entrance,Text`,
       ),
     /Status must be Active or Inactive/,
   );
   assert.throws(
     () =>
       parseSeedCsv(
-        `${header}\nThabo,Lecturer,Science,CMPG111,AI,Active,G3,ground,G03,Main Entrance,Text`,
+        `${header}\nThabo,Lecturer,Science,,,CMPG111,AI,Active,G3,ground,G03,Main Entrance,Text`,
       ),
     /Floor Level must be an integer/,
   );
@@ -237,7 +247,13 @@ test("repeated seeds refresh values while adding missing links and routes", asyn
   assert.deepEqual(first.routesSkipped, ["G03"]);
 
   const second = await seedLecturers(
-    [sampleRow({ title: "Professor", active: false, moduleCodes: ["CMPG111", "CMPG222"] })],
+    [sampleRow({
+      title: "Professor",
+      email: "professor.nkosi@example.edu",
+      officePhone: "+27 18 000 0099",
+      active: false,
+      moduleCodes: ["CMPG111", "CMPG222"],
+    })],
     store,
     async () => routeSvg("G03"),
   );
@@ -246,10 +262,12 @@ test("repeated seeds refresh values while adding missing links and routes", asyn
   assert.equal(second.inserted.lecturerModules, 1);
   assert.equal(second.inserted.routes, 1);
   assert.equal(store.lecturers.get("Thabo Nkosi")?.title, "Professor");
+  assert.equal(store.lecturers.get("Thabo Nkosi")?.email, "professor.nkosi@example.edu");
+  assert.equal(store.lecturers.get("Thabo Nkosi")?.officePhone, "+27 18 000 0099");
   assert.equal(store.lecturers.get("Thabo Nkosi")?.active, false);
 
   const third = await seedLecturers(
-    [sampleRow({ moduleCodes: ["CMPG111", "CMPG222"] })],
+    [sampleRow({ email: null, officePhone: null, moduleCodes: ["CMPG111", "CMPG222"] })],
     store,
     async () => routeSvg("G03", "M changed"),
   );
@@ -259,6 +277,8 @@ test("repeated seeds refresh values while adding missing links and routes", asyn
   assert.equal(third.inserted.modules, 0);
   assert.equal(third.inserted.lecturerModules, 0);
   assert.equal(third.inserted.routes, 0);
+  assert.equal(store.lecturers.get("Thabo Nkosi")?.email, null);
+  assert.equal(store.lecturers.get("Thabo Nkosi")?.officePhone, null);
   assert.equal(store.routes.values().next().value?.svgOverlay, routeSvg("G03", "M changed"));
 });
 

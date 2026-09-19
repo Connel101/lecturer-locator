@@ -97,6 +97,10 @@ export const lecturers = pgTable("lecturers", {
 
   department: varchar("department", { length: 255 }),
 
+  email: varchar("email", { length: 320 }),
+
+  officePhone: varchar("office_phone", { length: 50 }),
+
   researchArea: text("research_area"),
 
   active: boolean("active").default(true).notNull(),
