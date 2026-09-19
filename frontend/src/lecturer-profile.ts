@@ -7,6 +7,8 @@ export interface LecturerProfile {
   photoUrl?: string | null
   title: string | null
   department: string | null
+  email?: string
+  officePhone?: string
   modules: { code: string; name?: string }[]
   researchArea?: string
   officeHours: { dayOfWeek: number; startTime: string; endTime: string }[]
