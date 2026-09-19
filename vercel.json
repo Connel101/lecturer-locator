@@ -27,11 +27,19 @@
       "dest": "/backend/src/data/floorplans/$1"
     },
     {
+      "src": "/assets/(.*)",
+      "dest": "/frontend/assets/$1"
+    },
+    {
+      "src": "/(icon\\.webp|icon-192\\.png|icon-512\\.png|manifest\\.webmanifest)",
+      "dest": "/frontend/$1"
+    },
+    {
       "handle": "filesystem"
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/frontend/index.html"
     }
   ]
 }
