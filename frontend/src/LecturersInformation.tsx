@@ -3,6 +3,8 @@ import {
   faBuilding,
   faClock,
   faDiamondTurnRight,
+  faEnvelope,
+  faPhone,
 
 } from "@fortawesome/free-solid-svg-icons";
 import { useState } from "react";
@@ -19,9 +21,16 @@ const dayNames = [
   'Sunday',
 ]
 
+function telephoneHref(officePhone: string) {
+  const trimmedPhone = officePhone.trim();
+  const prefix = trimmedPhone.startsWith('+') ? '+' : '';
+  return `tel:${prefix}${trimmedPhone.replace(/\D/g, '')}`;
+}
+
 function LecturersInformation() {
   const lecturer = useLecturerProfile();
   const photoUrl = lecturer.photoUrl?.trim();
+  const hasContactDetails = Boolean(lecturer.email || lecturer.officePhone);
   const [failedPhotoUrl, setFailedPhotoUrl] = useState<string | null>(null);
   return (
 
@@ -71,6 +80,51 @@ function LecturersInformation() {
            </div>
          </div>
        </section>
+
+       {/* Contact details */}
+       {hasContactDetails && (
+         <section className="mt-3 rounded-[5px] border border-[#ece7ed] bg-white p-3 shadow-sm">
+           <h2 className="mb-2 font-bold text-[#4b145f]">
+             Contact
+           </h2>
+
+           <div className="grid gap-2">
+             {lecturer.email && (
+               <a
+                 className="flex min-h-14 items-center gap-3 rounded-lg border border-[#e2dce4] px-3 py-2 text-[#4b145f] no-underline transition-colors hover:bg-[#f7f0f9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8539b6] motion-reduce:transition-none"
+                 href={`mailto:${lecturer.email}`}
+               >
+                 <FontAwesomeIcon icon={faEnvelope} aria-hidden="true" />
+                 <span className="min-w-0">
+                   <span className="block text-xs font-semibold uppercase tracking-[0.08em] text-[#695c6c]">
+                     Email
+                   </span>
+                   <span className="block break-all font-medium">
+                     {lecturer.email}
+                   </span>
+                 </span>
+               </a>
+             )}
+
+             {lecturer.officePhone && (
+               <a
+                 className="flex min-h-14 items-center gap-3 rounded-lg border border-[#e2dce4] px-3 py-2 text-[#4b145f] no-underline transition-colors hover:bg-[#f7f0f9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8539b6] motion-reduce:transition-none"
+                 href={telephoneHref(lecturer.officePhone)}
+               >
+                 <FontAwesomeIcon icon={faPhone} aria-hidden="true" />
+                 <span className="min-w-0">
+                   <span className="block text-xs font-semibold uppercase tracking-[0.08em] text-[#695c6c]">
+                     Office phone
+                   </span>
+                   <span className="block break-words font-medium">
+                     {lecturer.officePhone}
+                   </span>
+                 </span>
+               </a>
+             )}
+           </div>
+         </section>
+       )}
 
        {/* Contact & Location */}
        <section className="mt-3 rounded-[5px] border border-[#ece7ed] bg-white p-3 shadow-sm">

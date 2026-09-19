@@ -110,6 +110,8 @@ export async function getLecturerProfile(
         fullName: lecturers.fullName,
         title: lecturers.title,
         department: lecturers.department,
+        email: lecturers.email,
+        officePhone: lecturers.officePhone,
         researchArea: lecturers.researchArea,
         buildingName: floorPlans.buildingName,
         floorLevel: floorPlans.floorLevel,
@@ -161,6 +163,10 @@ export async function getLecturerProfile(
       fullName: profile.fullName,
       title: profile.title,
       department: profile.department,
+      ...(profile.email !== null && { email: profile.email }),
+      ...(profile.officePhone !== null && {
+        officePhone: profile.officePhone,
+      }),
       modules: lecturerModuleRows.map((module) => ({
         code: module.code,
         ...(module.name !== null && { name: module.name }),

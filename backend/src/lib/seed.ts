@@ -2,6 +2,8 @@ export const SEED_CSV_HEADERS = [
   "Full Name",
   "Academic Title",
   "Department or Faculty",
+  "Email",
+  "Office Phone",
   "Modules Taught",
   "Research Area",
   "Status",
@@ -23,6 +25,8 @@ export interface SeedRow {
   fullName: string;
   title: string | null;
   department: string | null;
+  email: string | null;
+  officePhone: string | null;
   moduleCodes: string[];
   researchArea: string | null;
   active: boolean;
@@ -53,6 +57,8 @@ export interface SeedStore {
     fullName: string;
     title: string | null;
     department: string | null;
+    email: string | null;
+    officePhone: string | null;
     researchArea: string | null;
     active: boolean;
     officeId: number;
@@ -214,12 +220,12 @@ export function parseSeedCsv(csv: string): SeedRow[] {
       );
     }
 
-    const status = required(values[5], "Status", rowLine).toLowerCase();
+    const status = required(values[7], "Status", rowLine).toLowerCase();
     if (status !== "active" && status !== "inactive") {
       throw new Error(`Status must be Active or Inactive on CSV line ${rowLine}.`);
     }
 
-    const floorValue = required(values[7], "Floor Level", rowLine);
+    const floorValue = required(values[9], "Floor Level", rowLine);
     if (!/^-?\d+$/.test(floorValue)) {
       throw new Error(`Floor Level must be an integer on CSV line ${rowLine}.`);
     }
@@ -228,20 +234,22 @@ export function parseSeedCsv(csv: string): SeedRow[] {
       fullName: required(values[0], "Full Name", rowLine),
       title: optional(values[1]),
       department: optional(values[2]),
+      email: optional(values[3]),
+      officePhone: optional(values[4]),
       moduleCodes: [
         ...new Set(
-          values[3]
+          values[5]
             .split(";")
             .map((code) => code.trim())
             .filter(Boolean),
         ),
       ],
-      researchArea: optional(values[4]),
+      researchArea: optional(values[6]),
       active: status === "active",
-      buildingName: required(values[6], "Building Name", rowLine),
+      buildingName: required(values[8], "Building Name", rowLine),
       floorLevel: Number.parseInt(floorValue, 10),
-      roomNumber: required(values[8], "Room Number", rowLine),
-      entrancePoint: required(values[9], "Designated Entrance", rowLine),
+      roomNumber: required(values[10], "Room Number", rowLine),
+      entrancePoint: required(values[11], "Designated Entrance", rowLine),
     };
   });
 }
@@ -426,6 +434,8 @@ export async function seedLecturers(
       fullName: row.fullName,
       title: row.title,
       department: row.department,
+      email: row.email,
+      officePhone: row.officePhone,
       researchArea: row.researchArea,
       active: row.active,
       officeId: officeIds.get(officeKey)!,

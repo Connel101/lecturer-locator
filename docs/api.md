@@ -80,6 +80,8 @@ Returns a lecturer using their permanent ID.
   "fullName": "Dr Alex Example",
   "title": "Senior Lecturer",
   "department": "Computer Science",
+  "email": "alex.example@example.edu",
+  "officePhone": "+27 18 000 0001",
   "modules": [
     {
       "code": "CMPG111",
@@ -87,7 +89,13 @@ Returns a lecturer using their permanent ID.
     }
   ],
   "researchArea": "Software Engineering",
-  "officeHours": "Monday 10:00-12:00",
+  "officeHours": [
+    {
+      "dayOfWeek": 1,
+      "startTime": "10:00",
+      "endTime": "12:00"
+    }
+  ],
   "office": {
     "buildingName": "Natural Sciences",
     "floorLevel": 0,
@@ -100,12 +108,17 @@ Returns a lecturer using their permanent ID.
       "fileRef": "/data/floorplans/natural-sciences-ground.svg"
     },
     "entrancePoint": "Main Entrance",
-    "svgPath": "M 40 200 L 120 200 L 120 350"
+    "svgOverlay": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 600 400\"><!-- complete exported artwork and metadata --></svg>"
   }
 }
 ```
 
-`researchArea` and `officeHours` are optional. `modules` is an empty array when no modules are available.
+`email`, `officePhone` and `researchArea` are optional and are omitted when
+unavailable. Contact fields are returned only by the profile endpoint, not by
+lecturer search. `officeHours` is ordered by day and start time, uses
+ISO weekday numbers (`1` for Monday through `7` for Sunday), and is an empty
+array when no ranges are available. `modules` is an empty array when no modules
+are available.
 
 If a lecturer does not have an assigned office, `office` is `null`.
 
@@ -136,3 +149,22 @@ Unexpected errors return `500 Internal Server Error`:
   }
 }
 ```
+
+
+## Complete route overlays
+
+`route.svgOverlay` is the complete exported SVG document, including footprints/arrows,
+pin, styling, and editor metadata. There is no separate centreline column or API
+field. The centreline remains inside the exported SVG metadata for editor use.
+If an overlay is unavailable, the profile returns `route: null`.
+
+The overlay and floor-plan SVG must have matching valid `viewBox` coordinates.
+The viewer renders them as images in a shared frame. The floor plan is loaded from
+`floorPlan.fileRef`; no separate route endpoint is needed. Missing overlays show
+unavailable directions. API request failures and map load failures offer retry.
+
+Apply the database migrations, then run the development seed command to populate
+complete overlays from the existing assets. Each run reloads matching route artwork
+and entrance names, refreshes sample lecturer fields and office assignments, and
+synchronises their module links. It preserves IDs and does not clear tables.
+Preserve embedded metadata for future editor import support.
