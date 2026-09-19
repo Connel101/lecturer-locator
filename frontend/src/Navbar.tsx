@@ -3,14 +3,10 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faBuildingColumns, faCamera, faUser } from '@fortawesome/free-solid-svg-icons'
 import { Link, NavLink } from 'react-router-dom'
 import { authClient } from "./lib/auth-client";
+import { clearInstallPrompt, getInstallPrompt, type BeforeInstallPromptEvent } from './lib/pwa-install'
 
 const tabClassName = ({ isActive }: { isActive: boolean }) =>
   `mobile-nav__item${isActive ? ' mobile-nav__item--active' : ''}`
-
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>
-  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
-}
 
 const isStandalone = () =>
   window.matchMedia('(display-mode: standalone)').matches ||
@@ -23,24 +19,21 @@ function Navbar() {
   const [menu, setMenu] = useState(false)
   const { data: session } = authClient.useSession();
   const [usermenu, setUserMenu] = useState(false)
-  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(getInstallPrompt)
   const [showIosInstructions, setShowIosInstructions] = useState(false)
   const [installed, setInstalled] = useState(isStandalone)
 
   useEffect(() => {
-    const handleBeforeInstallPrompt = (event: Event) => {
-      event.preventDefault()
-      setInstallPrompt(event as BeforeInstallPromptEvent)
-    }
+    const handleBeforeInstallPrompt = () => setInstallPrompt(getInstallPrompt())
     const handleInstalled = () => {
       setInstalled(true)
       setInstallPrompt(null)
     }
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    window.addEventListener('pwa-install-available', handleBeforeInstallPrompt)
     window.addEventListener('appinstalled', handleInstalled)
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener('pwa-install-available', handleBeforeInstallPrompt)
       window.removeEventListener('appinstalled', handleInstalled)
     }
   }, [])
@@ -52,7 +45,10 @@ function Navbar() {
     if (installPrompt) {
       await installPrompt.prompt()
       const { outcome } = await installPrompt.userChoice
-      if (outcome === 'accepted') setInstallPrompt(null)
+      if (outcome === 'accepted') {
+        clearInstallPrompt()
+        setInstallPrompt(null)
+      }
       return
     }
     setShowIosInstructions(true)
