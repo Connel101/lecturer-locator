@@ -19,6 +19,7 @@ app.use(
 );
 
 app.all('/api/auth/{*any}', toNodeHandler(auth));
+app.use(express.json());
 app.use('/api/admin', adminRouter);
 app.use('/api/lecturers', lecturerRouter);
 
