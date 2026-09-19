@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faBuildingColumns, faCamera, faUser } from '@fortawesome/free-solid-svg-icons'
 import { Link, NavLink } from 'react-router-dom'
@@ -7,10 +7,59 @@ import { authClient } from "./lib/auth-client";
 const tabClassName = ({ isActive }: { isActive: boolean }) =>
   `mobile-nav__item${isActive ? ' mobile-nav__item--active' : ''}`
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>
+}
+
+const isStandalone = () =>
+  window.matchMedia('(display-mode: standalone)').matches ||
+  ('standalone' in window.navigator && (window.navigator as Navigator & { standalone?: boolean }).standalone === true)
+
+const isIos = () => /iphone|ipad|ipod/i.test(window.navigator.userAgent)
+
 function Navbar() {
   const [menu, setMenu] = useState(false)
   const { data: session } = authClient.useSession();
   const [usermenu, setUserMenu] = useState(false)
+  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(null)
+  const [showIosInstructions, setShowIosInstructions] = useState(false)
+  const [installed, setInstalled] = useState(isStandalone)
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault()
+      setInstallPrompt(event as BeforeInstallPromptEvent)
+    }
+    const handleInstalled = () => {
+      setInstalled(true)
+      setInstallPrompt(null)
+    }
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+    window.addEventListener('appinstalled', handleInstalled)
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt)
+      window.removeEventListener('appinstalled', handleInstalled)
+    }
+  }, [])
+
+  const canInstall = !installed && (installPrompt !== null || isIos())
+
+  const installApp = async () => {
+    setUserMenu(false)
+    if (installPrompt) {
+      await installPrompt.prompt()
+      const { outcome } = await installPrompt.userChoice
+      if (outcome === 'accepted') setInstallPrompt(null)
+      return
+    }
+    setShowIosInstructions(true)
+  }
+
+  const installMenuItem = canInstall && (
+    <button type="button" className="top-user__menu-item" onClick={installApp}>Install app</button>
+  )
 
   return (
     <>
@@ -28,6 +77,7 @@ function Navbar() {
           <div className="top-user__menu">
             
             <Link to="/" onClick={() => setUserMenu(false)}>Profile</Link>
+            {installMenuItem}
             <p
             onClick={async () => {
               await authClient.signOut();
@@ -44,6 +94,7 @@ function Navbar() {
         {usermenu && !session && (
           <div className="top-user__menu">
             <Link to="/signin" onClick={() => { setUserMenu(false) }}>Sign In</Link>
+            {installMenuItem}
             
           </div>
         )}
@@ -60,6 +111,16 @@ function Navbar() {
           </div>
         )}
       </nav>
+
+      {showIosInstructions && (
+        <div className="install-dialog__backdrop" role="presentation" onClick={() => setShowIosInstructions(false)}>
+          <section className="install-dialog" role="dialog" aria-modal="true" aria-labelledby="install-dialog-title" onClick={(event) => event.stopPropagation()}>
+            <h2 id="install-dialog-title">Add to Home Screen</h2>
+            <p>In Safari, tap the Share button, then choose <strong>Add to Home Screen</strong>.</p>
+            <button type="button" className="primary-button" onClick={() => setShowIosInstructions(false)}>Got it</button>
+          </section>
+        </div>
+      )}
 
       <nav className="mobile-nav" aria-label="Mobile navigation">
         <NavLink to="/directory" className={tabClassName}>
