@@ -61,10 +61,10 @@ function Lecturers() {
           <p className="page-intro">
             View and manage faculty members across all departments.
           </p>
-            <button className="primary-button add-lecturer-button" type="button">
+            <Link className="primary-button add-lecturer-button" to="/lecturer/create">
               <FontAwesomeIcon icon={faPlus} aria-hidden="true" />
               Add lecturer
-            </button>
+            </Link>
     
           <form className="search-form" onSubmit={handleSearch}>
             <label className="search-field">
@@ -99,12 +99,9 @@ function Lecturers() {
                 <div className="lecturer-list">
                   {lecturers.map((lecturer) => (
                     <div className="lecturer-card" key={lecturer.id}>
-                      <Link
-                        className="lecturer-card-content"
-                        to={`/lecturers/info/${lecturer.id}`}
-                      >
+                      <div className="lecturer-card-details">
                         <strong>{lecturer.fullName}</strong>
-        
+
                         {(lecturer.title || lecturer.department) && (
                           <span>
                             {[lecturer.title, lecturer.department]
@@ -112,16 +109,17 @@ function Lecturers() {
                               .join(' - ')}
                           </span>
                         )}
-        
+
                         <span>
                           {lecturer.office
                             ? `${lecturer.office.buildingName ?? 'Building unavailable'}, room ${lecturer.office.roomNumber}`
                             : 'Office not assigned'}
                         </span>
-                      </Link>
-                      <button className="edit-lecturer-button" type="button">
+                        </div>
+
+                      <Link to={`/lecturer/edit/${lecturer.id}`} className="edit-lecturer-button">
                         Edit
-                      </button>
+                      </Link>
                     </div>
                   ))}
                 </div>

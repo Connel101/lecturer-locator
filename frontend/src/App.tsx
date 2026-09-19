@@ -11,6 +11,8 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationDot } from "@fortawesome/free-solid-svg-icons"
 import LecturersInformation from './LecturersInformation'
 import ProtectedRoute from "./ProtectedRoute";
+import LecturerEdit from './LecturerEdit'
+import LecturerCreate from './LecturerCreate'
 
 
 function Map() {
@@ -43,7 +45,13 @@ function App() {
 
       <Route element={<ProtectedRoute />}>
       <Route path="/lecturers" element={<Lecturers />} />
-      <Route path="/buildings" element={<Buildings />} /> 
+      <Route path="/buildings" element={<Buildings />} />
+      <Route
+      path="/lecturer/edit/:id"
+      element={<LecturerProfileLayout />}>
+      <Route index element={<LecturerEdit />} />
+      </Route>
+      <Route path="/lecturer/create" element={<LecturerCreate />} />
       </Route>
     </Routes>
 

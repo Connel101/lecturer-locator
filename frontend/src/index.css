@@ -109,6 +109,12 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
   box-shadow: 0 0 0 3px rgba(133, 57, 182, 0.13);
 }
 
+.lecturer-card-details {
+  display: grid;
+  gap: 0.35rem;
+  text-align: left;
+}
+
 .lecturer-card-content {
   display: grid;
   gap: 0.35rem;
@@ -154,6 +160,11 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
   background: white;
   border: 1px solid #d9cfde;
   border-radius: 0.9rem;
+}
+.status-message--success {
+  color: #17633d;
+  background: #edf9f1;
+  border-color: #b8e2c7;
 }
 
 .status-message--error {

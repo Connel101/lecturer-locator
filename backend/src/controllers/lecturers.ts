@@ -209,3 +209,248 @@ export async function getLecturerProfile(
     });
   }
 }
+
+export async function createLecturer(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const {
+    fullName,
+    title,
+    department,
+    researchArea,
+    buildingName,
+    floorLevel,
+    roomNumber,
+  } = req.body ?? {};
+
+  if (
+    typeof fullName !== "string" ||
+    !fullName.trim() ||
+    typeof buildingName !== "string" ||
+    !buildingName.trim() ||
+    typeof floorLevel !== "number" ||
+    !Number.isInteger(floorLevel) ||
+    typeof roomNumber !== "string" ||
+    !roomNumber.trim() ||
+    (title !== null && typeof title !== "string") ||
+    (department !== null && typeof department !== "string") ||
+    (researchArea !== null && typeof researchArea !== "string")
+  ) {
+    res.status(400).json({
+      error: {
+        code: "INVALID_LECTURER",
+        message: "The lecturer details are invalid.",
+      },
+    });
+    return;
+  }
+
+  try {
+    const lecturer = await db.transaction(async (transaction) => {
+      const [floorPlan] = await transaction
+        .select({ id: floorPlans.id })
+        .from(floorPlans)
+        .where(
+          and(
+            eq(floorPlans.buildingName, buildingName.trim()),
+            eq(floorPlans.floorLevel, floorLevel),
+          ),
+        )
+        .limit(1);
+
+      if (!floorPlan) {
+        throw new Error("FLOOR_PLAN_NOT_FOUND");
+      }
+
+      const [existingOffice] = await transaction
+        .select({ id: offices.id })
+        .from(offices)
+        .where(
+          and(
+            eq(offices.floorPlanId, floorPlan.id),
+            eq(offices.roomNumber, roomNumber.trim()),
+          ),
+        )
+        .limit(1);
+
+      const officeId = existingOffice
+        ? existingOffice.id
+        : (
+            await transaction
+              .insert(offices)
+              .values({ floorPlanId: floorPlan.id, roomNumber: roomNumber.trim() })
+              .returning({ id: offices.id })
+          )[0].id;
+
+      const [created] = await transaction
+        .insert(lecturers)
+        .values({
+          fullName: fullName.trim(),
+          title: title?.trim() || null,
+          department: department?.trim() || null,
+          researchArea: researchArea?.trim() || null,
+          officeId,
+        })
+        .returning({ id: lecturers.id });
+
+      return created;
+    });
+
+    res.status(201).json({ id: lecturer.id, message: "Lecturer added successfully." });
+  } catch (error) {
+    if (error instanceof Error && error.message === "FLOOR_PLAN_NOT_FOUND") {
+      res.status(400).json({
+        error: {
+          code: "FLOOR_PLAN_NOT_FOUND",
+          message: "The selected building and floor are not available.",
+        },
+      });
+      return;
+    }
+
+    console.error("Failed to create lecturer:", error);
+    res.status(500).json({
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "The lecturer could not be added.",
+      },
+    });
+  }
+}
+
+export async function updateLecturer(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const lecturerId = req.params.id;
+  const {
+    fullName,
+    title,
+    department,
+    researchArea,
+    buildingName,
+    roomNumber,
+  } = req.body ?? {};
+
+  if (typeof lecturerId !== "string" || !UUID_PATTERN.test(lecturerId)) {
+    sendLecturerNotFound(res);
+    return;
+  }
+
+  if (
+    typeof fullName !== "string" ||
+    !fullName.trim() ||
+    (title !== null && typeof title !== "string") ||
+    (department !== null && typeof department !== "string") ||
+    (researchArea !== null && typeof researchArea !== "string") ||
+    (buildingName !== null && typeof buildingName !== "string") ||
+    (roomNumber !== null && typeof roomNumber !== "string") ||
+    (Boolean(buildingName) !== Boolean(roomNumber))
+  ) {
+    res.status(400).json({
+      error: {
+        code: "INVALID_LECTURER",
+        message: "The lecturer details are invalid.",
+      },
+    });
+    return;
+  }
+
+  try {
+    const updatedLecturer = await db.transaction(async (transaction) => {
+      let officeId: number | null = null;
+
+      if (buildingName && roomNumber) {
+        const [currentOffice] = await transaction
+          .select({ floorLevel: floorPlans.floorLevel })
+          .from(lecturers)
+          .leftJoin(offices, eq(lecturers.officeId, offices.id))
+          .leftJoin(floorPlans, eq(offices.floorPlanId, floorPlans.id))
+          .where(eq(lecturers.id, lecturerId))
+          .limit(1);
+
+        const [targetFloorPlan] = await transaction
+          .select({ id: floorPlans.id })
+          .from(floorPlans)
+          .where(
+            and(
+              eq(floorPlans.buildingName, buildingName.trim()),
+              ...(currentOffice?.floorLevel === null || currentOffice?.floorLevel === undefined
+                ? []
+                : [eq(floorPlans.floorLevel, currentOffice.floorLevel)]),
+            ),
+          )
+          .limit(1);
+
+        if (!targetFloorPlan) {
+          throw new Error("BUILDING_NOT_FOUND");
+        }
+
+        const [existingOffice] = await transaction
+          .select({ id: offices.id })
+          .from(offices)
+          .where(
+            and(
+              eq(offices.floorPlanId, targetFloorPlan.id),
+              eq(offices.roomNumber, roomNumber.trim()),
+            ),
+          )
+          .limit(1);
+
+        if (existingOffice) {
+          officeId = existingOffice.id;
+        } else {
+          const [newOffice] = await transaction
+            .insert(offices)
+            .values({
+              floorPlanId: targetFloorPlan.id,
+              roomNumber: roomNumber.trim(),
+            })
+            .returning({ id: offices.id });
+          officeId = newOffice.id;
+        }
+      }
+
+      const [updated] = await transaction
+        .update(lecturers)
+        .set({
+          fullName: fullName.trim(),
+          title: title?.trim() || null,
+          department: department?.trim() || null,
+          researchArea: researchArea?.trim() || null,
+          officeId,
+          updatedAt: new Date(),
+        })
+        .where(eq(lecturers.id, lecturerId))
+        .returning({ id: lecturers.id });
+
+      return updated;
+    });
+
+    if (!updatedLecturer) {
+      sendLecturerNotFound(res);
+      return;
+    }
+
+    res.status(200).json({ message: "Lecturer details saved successfully." });
+  } catch (error) {
+    if (error instanceof Error && error.message === "BUILDING_NOT_FOUND") {
+      res.status(400).json({
+        error: {
+          code: "BUILDING_NOT_FOUND",
+          message: "The selected building is not available on the lecturer's floor.",
+        },
+      });
+      return;
+    }
+
+    console.error("Failed to update lecturer:", error);
+    res.status(500).json({
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "The lecturer details could not be saved.",
+      },
+    });
+  }
+}

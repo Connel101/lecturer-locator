@@ -7,6 +7,7 @@ import { adminRouter } from "./routes/admin.ts";
 
 
 export const app: Express = express();
+app.use(express.json());
 
 // Serve local floor-plan assets through /data/floorplans.
 const floorPlansDirectory = fileURLToPath(
