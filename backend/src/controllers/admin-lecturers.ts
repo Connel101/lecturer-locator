@@ -40,6 +40,8 @@ export async function listLecturers(
         fullName: lecturers.fullName,
         title: lecturers.title,
         department: lecturers.department,
+        email: lecturers.email,
+        officePhone: lecturers.officePhone,
         researchArea: lecturers.researchArea,
         active: lecturers.active,
         officeId: lecturers.officeId,
@@ -64,7 +66,8 @@ export async function createLecturer(
   req: Request,
   res: Response,
 ): Promise<void> {
-  const { fullName, title, department, researchArea } = req.body ?? {};
+  const { fullName, title, department, email, officePhone, researchArea } =
+    req.body ?? {};
 
   if (typeof fullName !== "string" || fullName.trim() === "") {
     res.status(400).json({
@@ -80,6 +83,8 @@ export async function createLecturer(
         fullName: fullName.trim(),
         title: typeof title === "string" ? title : null,
         department: typeof department === "string" ? department : null,
+        email: typeof email === "string" ? email : null,
+        officePhone: typeof officePhone === "string" ? officePhone : null,
         researchArea: typeof researchArea === "string" ? researchArea : null,
       })
       .returning();
@@ -109,7 +114,8 @@ export async function updateLecturer(
     return;
   }
 
-  const { fullName, title, department, researchArea } = req.body ?? {};
+  const { fullName, title, department, email, officePhone, researchArea } =
+    req.body ?? {};
 
   const updates: Record<string, unknown> = {};
 
@@ -123,9 +129,27 @@ export async function updateLecturer(
     updates.fullName = fullName.trim();
   }
 
-  if (title !== undefined) updates.title = title === null ? null : String(title);
-  if (department !== undefined) updates.department = department === null ? null : String(department);
-  if (researchArea !== undefined) updates.researchArea = researchArea === null ? null : String(researchArea);
+  for (const [field, value] of Object.entries({
+    title,
+    department,
+    email,
+    officePhone,
+    researchArea,
+  })) {
+    if (value === undefined) continue;
+
+    if (value !== null && typeof value !== "string") {
+      res.status(400).json({
+        error: {
+          code: "INVALID_FIELD",
+          message: `${field} must be a string or null.`,
+        },
+      });
+      return;
+    }
+
+    updates[field] = value;
+  }
 
   if (Object.keys(updates).length === 0) {
     res.status(400).json({
