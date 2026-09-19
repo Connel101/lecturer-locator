@@ -17,6 +17,7 @@ const isStandalone = () =>
   ('standalone' in window.navigator && (window.navigator as Navigator & { standalone?: boolean }).standalone === true)
 
 const isIos = () => /iphone|ipad|ipod/i.test(window.navigator.userAgent)
+const isAndroid = () => /android/i.test(window.navigator.userAgent)
 
 function Navbar() {
   const [menu, setMenu] = useState(false)
@@ -44,7 +45,7 @@ function Navbar() {
     }
   }, [])
 
-  const canInstall = !installed && (installPrompt !== null || isIos())
+  const canInstall = !installed && (installPrompt !== null || isIos() || isAndroid())
 
   const installApp = async () => {
     setUserMenu(false)
@@ -116,7 +117,11 @@ function Navbar() {
         <div className="install-dialog__backdrop" role="presentation" onClick={() => setShowIosInstructions(false)}>
           <section className="install-dialog" role="dialog" aria-modal="true" aria-labelledby="install-dialog-title" onClick={(event) => event.stopPropagation()}>
             <h2 id="install-dialog-title">Add to Home Screen</h2>
-            <p>In Safari, tap the Share button, then choose <strong>Add to Home Screen</strong>.</p>
+            <p>
+              {isIos()
+                ? <>In Safari, tap the Share button, then choose <strong>Add to Home Screen</strong>.</>
+                : <>Open your browser menu and choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.</>}
+            </p>
             <button type="button" className="primary-button" onClick={() => setShowIosInstructions(false)}>Got it</button>
           </section>
         </div>
