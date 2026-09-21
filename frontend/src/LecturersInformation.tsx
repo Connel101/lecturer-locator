@@ -10,6 +10,7 @@ import {
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLecturerProfile } from './lecturer-profile';
+import LecturerQRCode from './LecturerQRCode';
 
 const dayNames = [
   'Monday',
@@ -163,12 +164,8 @@ function LecturersInformation() {
            Scan to share profile
          </p>
 
-         <div className="mx-auto mt-2 h-[58px] w-[58px] overflow-hidden rounded border border-[#e5e0e7] bg-white p-1">
-           <img
-            
-             alt="QR code to share lecturer profile"
-             className="h-full w-full object-contain"
-           />
+         <div className="mx-auto mt-2 h-[120px] w-[120px] overflow-hidden rounded border border-[#e5e0e7] bg-white p-1">
+           <LecturerQRCode lecturerId={lecturer.id} />
          </div>
        </section>
 
