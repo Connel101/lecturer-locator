@@ -1,65 +1,66 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faBuildingColumns, faCamera, faUser } from '@fortawesome/free-solid-svg-icons'
 import { Link, NavLink } from 'react-router-dom'
 import { authClient } from "./lib/auth-client";
-import { clearInstallPrompt, getInstallPrompt, type BeforeInstallPromptEvent } from './lib/pwa-install'
+import { usePwaInstall } from "./hooks/usePwaInstall";
 
 const tabClassName = ({ isActive }: { isActive: boolean }) =>
   `mobile-nav__item${isActive ? ' mobile-nav__item--active' : ''}`
 
-const isStandalone = () =>
-  window.matchMedia('(display-mode: standalone)').matches ||
-  ('standalone' in window.navigator && (window.navigator as Navigator & { standalone?: boolean }).standalone === true)
-
 const isIos = () => /iphone|ipad|ipod/i.test(window.navigator.userAgent)
-const isAndroid = () => /android/i.test(window.navigator.userAgent)
 
 function Navbar() {
+  const {
+  installPrompt,
+  installApp,
+  isInstalled,
+} = usePwaInstall();
+
   const [menu, setMenu] = useState(false)
   const { data: session } = authClient.useSession();
   const [usermenu, setUserMenu] = useState(false)
-  const [installPrompt, setInstallPrompt] = useState<BeforeInstallPromptEvent | null>(getInstallPrompt)
   const [showIosInstructions, setShowIosInstructions] = useState(false)
-  const [installed, setInstalled] = useState(isStandalone)
 
-  useEffect(() => {
-    const handleBeforeInstallPrompt = () => setInstallPrompt(getInstallPrompt())
-    const handleInstalled = () => {
-      setInstalled(true)
-      setInstallPrompt(null)
-    }
+  const showInstallOption = !isInstalled && (installPrompt !== null || isIos())
 
-    window.addEventListener('pwa-install-available', handleBeforeInstallPrompt)
-    window.addEventListener('appinstalled', handleInstalled)
-    return () => {
-      window.removeEventListener('pwa-install-available', handleBeforeInstallPrompt)
-      window.removeEventListener('appinstalled', handleInstalled)
-    }
-  }, [])
+  const canInstall = !isInstalled && (installPrompt !== null || isIos())
 
-  const canInstall = !installed && (installPrompt !== null || isIos() || isAndroid())
-
-  const installApp = async () => {
-    setUserMenu(false)
-    if (installPrompt) {
-      await installPrompt.prompt()
-      const { outcome } = await installPrompt.userChoice
-      if (outcome === 'accepted') {
-        clearInstallPrompt()
-        setInstallPrompt(null)
-      }
-      return
-    }
-    setShowIosInstructions(true)
-  }
+  
 
   const installMenuItem = canInstall && (
-    <button type="button" className="top-user__menu-item" onClick={installApp}>Install app</button>
+    <button
+      type="button"
+      className="top-user__menu-item"
+      onClick={() => {
+        if (installPrompt) {
+          installApp()
+        } else {
+          setShowIosInstructions(true)
+        }
+      }}
+    >
+      Install app
+    </button>
   )
 
   return (
     <>
+      {showInstallOption && (
+  <button
+    type="button"
+    onClick={() => {
+      if (installPrompt) {
+        installApp();
+      } else {
+        setShowIosInstructions(true);
+      }
+    }}
+    className="install-action"
+  >
+    Install app
+  </button>
+)}
       <nav className="top-nav" aria-label="Main navigation">
         <div className="top-nav__brand">
           <button type="button" onClick={() => setMenu(!menu)} className="top-nav__icon-button" aria-label="Open navigation menu" aria-expanded={menu}>
@@ -112,7 +113,7 @@ function Navbar() {
       {showIosInstructions && (
         <div className="install-dialog__backdrop" role="presentation" onClick={() => setShowIosInstructions(false)}>
           <section className="install-dialog" role="dialog" aria-modal="true" aria-labelledby="install-dialog-title" onClick={(event) => event.stopPropagation()}>
-            <h2 id="install-dialog-title">Add to Home Screen</h2>
+            <h2 id="install-dialog-title">{isIos() ? 'Add to Home Screen' : 'Install LecturerLocator'}</h2>
             <p>
               {isIos()
                 ? <>In Safari, tap the Share button, then choose <strong>Add to Home Screen</strong>.</>
