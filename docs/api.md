@@ -168,3 +168,280 @@ complete overlays from the existing assets. Each run reloads matching route artw
 and entrance names, refreshes sample lecturer fields and office assignments, and
 synchronises their module links. It preserves IDs and does not clear tables.
 Preserve embedded metadata for future editor import support.
+
+# Administrator Location Management API
+
+The administrator location API manages floor plans, offices and route overlays used by the lecturer directory and directions features.
+
+All endpoints in this section require an authenticated administrator session.
+
+## General rules
+
+- Requests and responses use JSON unless otherwise stated.
+- Field names use `camelCase`.
+- Administrator endpoints are available under `/api/admin`.
+- Unauthenticated requests return `401 Unauthorized`.
+- Authenticated users without administrator access return `403 Forbidden`.
+- Successful delete requests return `204 No Content`.
+
+## Floor plans
+
+### List floor plans
+
+```text
+GET /api/admin/floor-plans
+```
+
+Returns all floor-plan records ordered by building name and floor level.
+
+### Successful response - `200 OK`
+
+```json
+{
+  "floorPlans": [
+    {
+      "id": 1,
+      "buildingName": "G3",
+      "floorLevel": 0,
+      "fileRef": "/data/floorplans/groundfloor.svg",
+      "createdAt": "2026-09-13T13:12:23.647Z",
+      "updatedAt": "2026-09-22T08:56:39.947Z"
+    }
+  ]
+}
+```
+
+### Create a floor plan
+
+```text
+POST /api/admin/floor-plans
+```
+
+Example request:
+
+```json
+{
+  "buildingName": "G3",
+  "floorLevel": 0,
+  "fileRef": "/data/floorplans/groundfloor.svg"
+}
+```
+
+`buildingName` and `fileRef` must be non-empty text values. `floorLevel` must be a whole number.
+
+A successful request returns the created floor-plan record with `201 Created`.
+
+### Update a floor plan
+
+```text
+PATCH /api/admin/floor-plans/:id
+```
+
+Example request:
+
+```json
+{
+  "buildingName": "G3",
+  "fileRef": "/data/floorplans/groundfloor-updated.svg"
+}
+```
+
+Only supplied fields are updated.
+
+### Delete a floor plan
+
+```text
+DELETE /api/admin/floor-plans/:id
+```
+
+A floor plan can be deleted only when no offices are assigned to it.
+
+If offices still reference the floor plan, the API returns `409 Conflict`:
+
+```json
+{
+  "error": {
+    "code": "FLOOR_PLAN_IN_USE",
+    "message": "The floor plan cannot be deleted while offices are assigned to it."
+  }
+}
+```
+
+A successful deletion returns `204 No Content`.
+
+## Offices
+
+### List offices
+
+```text
+GET /api/admin/offices
+```
+
+Returns offices together with their floor-plan information.
+
+### Successful response - `200 OK`
+
+```json
+{
+  "offices": [
+    {
+      "id": 1,
+      "roomNumber": "G03",
+      "floorPlanId": 1,
+      "buildingName": "G3",
+      "floorLevel": 0,
+      "createdAt": "2026-09-13T13:12:23.647Z",
+      "updatedAt": "2026-09-13T13:12:23.647Z"
+    }
+  ]
+}
+```
+
+### Create an office
+
+```text
+POST /api/admin/offices
+```
+
+Example request:
+
+```json
+{
+  "floorPlanId": 1,
+  "roomNumber": "G03"
+}
+```
+
+`floorPlanId` must identify an existing floor plan. `roomNumber` must be a non-empty text value.
+
+A successful request returns the created office with `201 Created`.
+
+### Update an office
+
+```text
+PATCH /api/admin/offices/:id
+```
+
+Example request:
+
+```json
+{
+  "floorPlanId": 2,
+  "roomNumber": "B03"
+}
+```
+
+The floor-plan assignment and room number can be updated independently.
+
+### Delete an office
+
+```text
+DELETE /api/admin/offices/:id
+```
+
+Deleting an office also removes its associated route. Lecturers assigned to the deleted office are left without an office assignment.
+
+A successful deletion returns `204 No Content`.
+
+## Routes
+
+### List routes
+
+```text
+GET /api/admin/routes
+```
+
+Returns route records together with their associated office and floor-plan information.
+
+### Successful response - `200 OK`
+
+```json
+{
+  "routes": [
+    {
+      "id": 1,
+      "officeId": 1,
+      "entrancePoint": "Main Entrance",
+      "svgOverlay": "<svg xmlns=\"http://www.w3.org/2000/svg\">...</svg>",
+      "roomNumber": "G03",
+      "floorPlanId": 1,
+      "buildingName": "G3",
+      "floorLevel": 0,
+      "createdAt": "2026-09-13T13:12:23.647Z",
+      "updatedAt": "2026-09-13T13:12:23.647Z"
+    }
+  ]
+}
+```
+
+### Create a route
+
+```text
+POST /api/admin/routes
+```
+
+Example request:
+
+```json
+{
+  "officeId": 1,
+  "entrancePoint": "Main Entrance",
+  "svgOverlay": "<svg xmlns=\"http://www.w3.org/2000/svg\">...</svg>"
+}
+```
+
+`officeId` must identify an existing office. `entrancePoint` must be a non-empty text value.
+
+`svgOverlay` may be omitted or set to `null`. When supplied as text, the complete SVG document is stored unchanged so that editor metadata and route artwork are preserved.
+
+The MVP supports one route per office. Attempting to create a second route for the same office returns `409 Conflict`:
+
+```json
+{
+  "error": {
+    "code": "ROUTE_ALREADY_EXISTS",
+    "message": "A route already exists for this office."
+  }
+}
+```
+
+A successful request returns the created route with `201 Created`.
+
+### Update a route
+
+```text
+PATCH /api/admin/routes/:id
+```
+
+Example request:
+
+```json
+{
+  "entrancePoint": "South Entrance",
+  "svgOverlay": "<svg xmlns=\"http://www.w3.org/2000/svg\">...</svg>"
+}
+```
+
+The office assignment, entrance point and SVG overlay can be updated independently.
+
+Moving a route to an office that already has a route is rejected with `409 Conflict`.
+
+### Delete a route
+
+```text
+DELETE /api/admin/routes/:id
+```
+
+Deleting a route does not delete its office or floor plan.
+
+A successful deletion returns `204 No Content`.
+
+## Administrator API errors
+
+Invalid numeric IDs return `400 Bad Request`.
+
+Missing floor plans, offices and routes return `404 Not Found`.
+
+Requests that contain no fields that can be updated return `400 Bad Request`.
+
+Unexpected database or server failures return `500 Internal Server Error` using the standard JSON error structure.
