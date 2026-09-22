@@ -1,7 +1,7 @@
 import { eq } from "drizzle-orm";
 import type { Request, Response } from "express";
 
-import { floorPlans, offices } from "../db/schema.ts";
+import { floorPlans, offices, routes } from "../db/schema.ts";
 import { db } from "../lib/db.ts";
 
 /**
@@ -498,6 +498,359 @@ export async function deleteOffice(
       error: {
         code: "INTERNAL_ERROR",
         message: "The office could not be deleted.",
+      },
+    });
+  }
+}
+
+/**
+ * Sends the standard response used when a route record cannot be found.
+ */
+function sendRouteNotFound(res: Response): void {
+  res.status(404).json({
+    error: {
+      code: "ROUTE_NOT_FOUND",
+      message: "Route could not be found.",
+    },
+  });
+}
+
+/**
+ * GET /api/admin/routes
+ * Lists all configured routes together with their office and floor-plan details.
+ */
+export async function listRoutes(
+  _req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const rows = await db
+      .select({
+        id: routes.id,
+        officeId: routes.officeId,
+        entrancePoint: routes.entrancePoint,
+        svgOverlay: routes.svgOverlay,
+        roomNumber: offices.roomNumber,
+        floorPlanId: offices.floorPlanId,
+        buildingName: floorPlans.buildingName,
+        floorLevel: floorPlans.floorLevel,
+        createdAt: routes.createdAt,
+        updatedAt: routes.updatedAt,
+      })
+      .from(routes)
+      .innerJoin(offices, eq(routes.officeId, offices.id))
+      .innerJoin(floorPlans, eq(offices.floorPlanId, floorPlans.id))
+      .orderBy(
+        floorPlans.buildingName,
+        floorPlans.floorLevel,
+        offices.roomNumber,
+      );
+
+    res.status(200).json({ routes: rows });
+  } catch (error) {
+    console.error("Failed to list routes:", error);
+
+    res.status(500).json({
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "Routes could not be loaded.",
+      },
+    });
+  }
+}
+
+/**
+ * POST /api/admin/routes
+ * Creates one route for an existing office.
+ *
+ * The MVP supports a single route per office. A second route for the same
+ * office is rejected rather than silently replacing the existing route.
+ */
+export async function createRoute(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const { officeId, entrancePoint, svgOverlay } = req.body ?? {};
+
+  if (!Number.isInteger(officeId) || officeId <= 0) {
+    res.status(400).json({
+      error: {
+        code: "INVALID_OFFICE_ID",
+        message: "officeId must be a positive whole number.",
+      },
+    });
+    return;
+  }
+
+  if (typeof entrancePoint !== "string" || entrancePoint.trim() === "") {
+    res.status(400).json({
+      error: {
+        code: "INVALID_ENTRANCE_POINT",
+        message: "entrancePoint is required.",
+      },
+    });
+    return;
+  }
+
+  if (
+    svgOverlay !== undefined &&
+    svgOverlay !== null &&
+    (typeof svgOverlay !== "string" || svgOverlay.trim() === "")
+  ) {
+    res.status(400).json({
+      error: {
+        code: "INVALID_SVG_OVERLAY",
+        message: "svgOverlay must be a non-empty string or null.",
+      },
+    });
+    return;
+  }
+
+  try {
+    // A route must belong to an office that already exists.
+    const [office] = await db
+      .select({ id: offices.id })
+      .from(offices)
+      .where(eq(offices.id, officeId))
+      .limit(1);
+
+    if (!office) {
+      res.status(404).json({
+        error: {
+          code: "OFFICE_NOT_FOUND",
+          message: "No office exists with that id.",
+        },
+      });
+      return;
+    }
+
+    // The MVP permits only one route record for each office.
+    const [existingRoute] = await db
+      .select({ id: routes.id })
+      .from(routes)
+      .where(eq(routes.officeId, officeId))
+      .limit(1);
+
+    if (existingRoute) {
+      res.status(409).json({
+        error: {
+          code: "ROUTE_ALREADY_EXISTS",
+          message: "A route already exists for this office.",
+        },
+      });
+      return;
+    }
+
+    const [created] = await db
+      .insert(routes)
+      .values({
+        officeId,
+        entrancePoint: entrancePoint.trim(),
+        // Preserve the exported SVG exactly as supplied, including metadata.
+        svgOverlay: svgOverlay ?? null,
+      })
+      .returning();
+
+    res.status(201).json(created);
+  } catch (error) {
+    console.error("Failed to create route:", error);
+
+    res.status(500).json({
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "The route could not be created.",
+      },
+    });
+  }
+}
+
+/**
+ * PATCH /api/admin/routes/:id
+ * Updates a route's office, designated entrance, or SVG overlay.
+ */
+export async function updateRoute(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const routeId = parseId(req.params.id);
+
+  if (routeId === null) {
+    sendRouteNotFound(res);
+    return;
+  }
+
+  const { officeId, entrancePoint, svgOverlay } = req.body ?? {};
+  const updates: Record<string, unknown> = {};
+
+  if (officeId !== undefined) {
+    if (!Number.isInteger(officeId) || officeId <= 0) {
+      res.status(400).json({
+        error: {
+          code: "INVALID_OFFICE_ID",
+          message: "officeId must be a positive whole number.",
+        },
+      });
+      return;
+    }
+  }
+
+  if (entrancePoint !== undefined) {
+    if (
+      typeof entrancePoint !== "string" ||
+      entrancePoint.trim() === ""
+    ) {
+      res.status(400).json({
+        error: {
+          code: "INVALID_ENTRANCE_POINT",
+          message: "entrancePoint must be a non-empty string.",
+        },
+      });
+      return;
+    }
+
+    updates.entrancePoint = entrancePoint.trim();
+  }
+
+  if (svgOverlay !== undefined) {
+    if (
+      svgOverlay !== null &&
+      (typeof svgOverlay !== "string" || svgOverlay.trim() === "")
+    ) {
+      res.status(400).json({
+        error: {
+          code: "INVALID_SVG_OVERLAY",
+          message: "svgOverlay must be a non-empty string or null.",
+        },
+      });
+      return;
+    }
+
+    // Keep the complete exported SVG unchanged so editor metadata survives.
+    updates.svgOverlay = svgOverlay;
+  }
+
+  if (
+    officeId === undefined &&
+    entrancePoint === undefined &&
+    svgOverlay === undefined
+  ) {
+    res.status(400).json({
+      error: {
+        code: "NO_UPDATES_PROVIDED",
+        message: "At least one field must be provided to update.",
+      },
+    });
+    return;
+  }
+
+  try {
+    // Confirm the route exists before validating any changed associations.
+    const [currentRoute] = await db
+      .select({
+        id: routes.id,
+        officeId: routes.officeId,
+      })
+      .from(routes)
+      .where(eq(routes.id, routeId))
+      .limit(1);
+
+    if (!currentRoute) {
+      sendRouteNotFound(res);
+      return;
+    }
+
+    if (officeId !== undefined) {
+      const [office] = await db
+        .select({ id: offices.id })
+        .from(offices)
+        .where(eq(offices.id, officeId))
+        .limit(1);
+
+      if (!office) {
+        res.status(404).json({
+          error: {
+            code: "OFFICE_NOT_FOUND",
+            message: "No office exists with that id.",
+          },
+        });
+        return;
+      }
+
+      // Moving a route must not give an office a second route.
+      const [routeForOffice] = await db
+        .select({ id: routes.id })
+        .from(routes)
+        .where(eq(routes.officeId, officeId))
+        .limit(1);
+
+      if (routeForOffice && routeForOffice.id !== routeId) {
+        res.status(409).json({
+          error: {
+            code: "ROUTE_ALREADY_EXISTS",
+            message: "A route already exists for this office.",
+          },
+        });
+        return;
+      }
+
+      updates.officeId = officeId;
+    }
+
+    updates.updatedAt = new Date();
+
+    const [updated] = await db
+      .update(routes)
+      .set(updates)
+      .where(eq(routes.id, routeId))
+      .returning();
+
+    res.status(200).json(updated);
+  } catch (error) {
+    console.error("Failed to update route:", error);
+
+    res.status(500).json({
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "The route could not be updated.",
+      },
+    });
+  }
+}
+
+/**
+ * DELETE /api/admin/routes/:id
+ * Removes a route without deleting its associated office.
+ */
+export async function deleteRoute(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const routeId = parseId(req.params.id);
+
+  if (routeId === null) {
+    sendRouteNotFound(res);
+    return;
+  }
+
+  try {
+    const [deleted] = await db
+      .delete(routes)
+      .where(eq(routes.id, routeId))
+      .returning({ id: routes.id });
+
+    if (!deleted) {
+      sendRouteNotFound(res);
+      return;
+    }
+
+    res.status(204).send();
+  } catch (error) {
+    console.error("Failed to delete route:", error);
+
+    res.status(500).json({
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "The route could not be deleted.",
       },
     });
   }

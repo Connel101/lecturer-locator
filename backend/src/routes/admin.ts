@@ -4,11 +4,15 @@ import { requireAdmin } from "../middleware/require-admin.ts";
 import {
   createFloorPlan,
   createOffice,
+  createRoute,
   deleteOffice,
+  deleteRoute,
   listFloorPlans,
   listOffices,
+  listRoutes,
   updateFloorPlan,
   updateOffice,
+  updateRoute,
 } from "../controllers/admin-locations.ts";
 import {
   addLecturerModule,
@@ -43,3 +47,9 @@ adminRouter.get("/offices", listOffices);
 adminRouter.post("/offices", createOffice);
 adminRouter.patch("/offices/:id", updateOffice);
 adminRouter.delete("/offices/:id", deleteOffice);
+
+// Route management
+adminRouter.get("/routes", listRoutes);
+adminRouter.post("/routes", createRoute);
+adminRouter.patch("/routes/:id", updateRoute);
+adminRouter.delete("/routes/:id", deleteRoute);
