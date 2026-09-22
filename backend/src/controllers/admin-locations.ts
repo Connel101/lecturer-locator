@@ -229,6 +229,59 @@ export async function updateFloorPlan(
 }
 
 /**
+ * Deletes a floor plan when no offices are assigned to it.
+ */
+export async function deleteFloorPlan(req: Request, res: Response) {
+  const id = parseId(req.params.id);
+
+  if (id === null) {
+    return res.status(400).json({
+      error: {
+        code: "INVALID_FLOOR_PLAN_ID",
+        message: "Floor plan ID must be a positive integer.",
+      },
+    });
+  }
+
+  try {
+    const assignedOffice = await db
+      .select({ id: offices.id })
+      .from(offices)
+      .where(eq(offices.floorPlanId, id))
+      .limit(1);
+
+    if (assignedOffice.length > 0) {
+      return res.status(409).json({
+        error: {
+          code: "FLOOR_PLAN_IN_USE",
+          message: "The floor plan cannot be deleted while offices are assigned to it.",
+        },
+      });
+    }
+
+    const [deletedFloorPlan] = await db
+      .delete(floorPlans)
+      .where(eq(floorPlans.id, id))
+      .returning({ id: floorPlans.id });
+
+    if (!deletedFloorPlan) {
+      return sendFloorPlanNotFound(res);
+    }
+
+    return res.status(204).send();
+  } catch (error) {
+    console.error("Failed to delete floor plan:", error);
+
+    return res.status(500).json({
+      error: {
+        code: "FLOOR_PLAN_DELETE_FAILED",
+        message: "Failed to delete floor plan.",
+      },
+    });
+  }
+}
+
+/**
  * Sends the standard response used when an office record cannot be found.
  */
 function sendOfficeNotFound(res: Response): void {

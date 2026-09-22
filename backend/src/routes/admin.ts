@@ -5,6 +5,7 @@ import {
   createFloorPlan,
   createOffice,
   createRoute,
+  deleteFloorPlan,
   deleteOffice,
   deleteRoute,
   listFloorPlans,
@@ -32,6 +33,7 @@ adminRouter.use(requireAdmin);
 adminRouter.get("/floor-plans", listFloorPlans);
 adminRouter.post("/floor-plans", createFloorPlan);
 adminRouter.patch("/floor-plans/:id", updateFloorPlan);
+adminRouter.delete("/floor-plans/:id", deleteFloorPlan);
 
 // Lecturer management
 adminRouter.get("/lecturers", listLecturers);

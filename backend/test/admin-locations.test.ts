@@ -9,6 +9,7 @@ import {
   createFloorPlan,
   createOffice,
   createRoute,
+  deleteFloorPlan,
   deleteOffice,
   deleteRoute,
   updateFloorPlan,
@@ -93,6 +94,24 @@ test("admin location routes require administrator authentication", async () => {
 
     assert.equal(body.error.code, "UNAUTHENTICATED");
   }
+});
+
+test("rejects an invalid floor-plan ID for deletion", async () => {
+  const req = {
+    params: { id: "invalid" },
+  } as unknown as Request;
+
+  const mock = createMockResponse();
+
+  await deleteFloorPlan(req, mock.res);
+
+  assert.equal(mock.state.statusCode, 400);
+  assert.deepEqual(mock.state.body, {
+    error: {
+      code: "INVALID_FLOOR_PLAN_ID",
+      message: "Floor plan ID must be a positive integer.",
+    },
+  });
 });
 
 test("rejects a floor plan without a building name", async () => {
