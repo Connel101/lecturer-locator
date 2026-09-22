@@ -180,6 +180,21 @@ test("rejects an invalid office ID for update", async () => {
   );
 });
 
+test("rejects changing an existing office's floor plan", async () => {
+  const { res, state } = createMockResponse();
+
+  await updateOffice(
+    createRequest({ floorPlanId: 2, roomNumber: "B03" }, { id: "1" }),
+    res,
+  );
+
+  assert.equal(state.statusCode, 400);
+  assert.equal(
+    (state.body as { error: { code: string } }).error.code,
+    "FLOOR_PLAN_CHANGE_NOT_ALLOWED",
+  );
+});
+
 test("rejects an invalid office ID for deletion", async () => {
   const { res, state } = createMockResponse();
 

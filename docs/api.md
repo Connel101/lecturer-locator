@@ -326,12 +326,11 @@ Example request:
 
 ```json
 {
-  "floorPlanId": 2,
   "roomNumber": "B03"
 }
 ```
 
-The floor-plan assignment and room number can be updated independently.
+Only the room number can be updated. An office stays on the floor plan selected when it was created. Supplying `floorPlanId` returns `400 Bad Request` with `FLOOR_PLAN_CHANGE_NOT_ALLOWED`. To move a lecturer, change the lecturer's office assignment instead.
 
 ### Delete an office
 

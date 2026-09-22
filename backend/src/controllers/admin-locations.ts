@@ -404,7 +404,7 @@ export async function createOffice(
 
 /**
  * PATCH /api/admin/offices/:id
- * Updates an office's room number or floor-plan assignment.
+ * Updates an office's room number. Its floor-plan assignment is fixed.
  */
 export async function updateOffice(
   req: Request,
@@ -421,46 +421,13 @@ export async function updateOffice(
   const updates: Record<string, unknown> = {};
 
   if (floorPlanId !== undefined) {
-    if (!Number.isInteger(floorPlanId) || floorPlanId <= 0) {
-      res.status(400).json({
-        error: {
-          code: "INVALID_FLOOR_PLAN_ID",
-          message: "floorPlanId must be a positive whole number.",
-        },
-      });
-      return;
-    }
-
-    try {
-      // Validate the new floor-plan assignment before updating the office.
-      const [floorPlan] = await db
-        .select({ id: floorPlans.id })
-        .from(floorPlans)
-        .where(eq(floorPlans.id, floorPlanId))
-        .limit(1);
-
-      if (!floorPlan) {
-        res.status(404).json({
-          error: {
-            code: "FLOOR_PLAN_NOT_FOUND",
-            message: "No floor plan exists with that id.",
-          },
-        });
-        return;
-      }
-    } catch (error) {
-      console.error("Failed to validate floor plan:", error);
-
-      res.status(500).json({
-        error: {
-          code: "INTERNAL_ERROR",
-          message: "The floor-plan assignment could not be validated.",
-        },
-      });
-      return;
-    }
-
-    updates.floorPlanId = floorPlanId;
+    res.status(400).json({
+      error: {
+        code: "FLOOR_PLAN_CHANGE_NOT_ALLOWED",
+        message: "An office's floor plan cannot be changed.",
+      },
+    });
+    return;
   }
 
   if (roomNumber !== undefined) {
