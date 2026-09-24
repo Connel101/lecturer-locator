@@ -229,15 +229,9 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
   text-align: center;
 }
 
-.admin-card-actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 0.25rem;
-}
-
 .admin-action-button {
   padding: 0.45rem 0.8rem;
+  min-width: 5rem;
   color: #4b145f;
   background: transparent;
   border: 1px solid #d9cfde;
@@ -250,4 +244,30 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
 .admin-action-button:focus-visible {
   border-color: #8539b6;
   background: #f4edf7;
+}
+
+.admin-management-card {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 1rem;
+}
+
+.admin-card-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.admin-management-card > form {
+  grid-column: 1 / -1;
+}
+
+.admin-card-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.5rem;
+  margin-top: 0;
 }

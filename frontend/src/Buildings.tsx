@@ -66,6 +66,8 @@ function Buildings() {
   const [editFileRef, setEditFileRef] = useState("");
   const [floorPlanUpdating, setFloorPlanUpdating] = useState(false);
   const [floorPlanEditError, setFloorPlanEditError] = useState("");
+  const [deletingFloorPlanId, setDeletingFloorPlanId] = useState<number | null>(null);
+  const [floorPlanDeleteError, setFloorPlanDeleteError] = useState("");
 
   const [buildingName, setBuildingName] = useState("");
   const [floorLevel, setFloorLevel] = useState("");
@@ -244,6 +246,53 @@ function Buildings() {
     }
   }
 
+  async function handleDeleteFloorPlan(floorPlan: FloorPlan) {
+    const confirmed = window.confirm(
+      `Delete ${floorPlan.buildingName}, floor ${floorPlan.floorLevel}?`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingFloorPlanId(floorPlan.id);
+    setFloorPlanDeleteError("");
+
+    try {
+      const response = await fetch(`/api/admin/floor-plans/${floorPlan.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        let message = `Request failed with status ${response.status}.`;
+
+        try {
+          const data = (await response.json()) as ApiErrorResponse;
+
+          if (data.error?.message) {
+            message = data.error.message;
+          }
+        } catch {
+          // Keep the fallback message if the response is not JSON.
+        }
+
+        throw new Error(message);
+      }
+
+      setFloorPlans((current) =>
+        current.filter((item) => item.id !== floorPlan.id),
+      );
+    } catch (err) {
+      setFloorPlanDeleteError(
+        err instanceof Error
+          ? err.message
+          : "Unable to delete the floor plan.",
+      );
+    } finally {
+      setDeletingFloorPlanId(null);
+    }
+  }
+
   return (
     <main className="page-shell">
       <p className="eyebrow">Administration</p>
@@ -315,7 +364,7 @@ function Buildings() {
             ) : (
               <div className="lecturer-list">
                 {floorPlans.map((floorPlan) => (
-                  <article className="lecturer-card" key={floorPlan.id}>
+                  <article className="lecturer-card admin-management-card" key={floorPlan.id}>
                     {editingFloorPlanId === floorPlan.id ? (
                       <form onSubmit={handleUpdateFloorPlan} className="lecturer-list">
                         <label className="search-field">
@@ -373,17 +422,29 @@ function Buildings() {
                       </form>
                     ) : (
                       <>
-                        <strong>{floorPlan.buildingName}</strong>
-                        <span>Floor {floorPlan.floorLevel}</span>
-                        <span>{floorPlan.fileRef}</span>
+                        <div className="admin-card-details">
+                          <strong>{floorPlan.buildingName}</strong>
+                          <span>Floor {floorPlan.floorLevel}</span>
+                          <span>{floorPlan.fileRef}</span>
+                        </div>
 
                         <div className="admin-card-actions">
                           <button
                             type="button"
                             className="admin-action-button"
                             onClick={() => handleStartEditFloorPlan(floorPlan)}
+                            disabled={deletingFloorPlanId === floorPlan.id}
                           >
                             Edit
+                          </button>
+
+                          <button
+                            type="button"
+                            className="admin-action-button"
+                            onClick={() => void handleDeleteFloorPlan(floorPlan)}
+                            disabled={deletingFloorPlanId === floorPlan.id}
+                          >
+                            {deletingFloorPlanId === floorPlan.id ? "Deleting..." : "Delete"}
                           </button>
                         </div>
                       </>
@@ -392,6 +453,13 @@ function Buildings() {
                 ))}
               </div>
             )}
+
+            {floorPlanDeleteError && (
+              <p className="status-message status-message--error">
+                {floorPlanDeleteError}
+              </p>
+            )}
+
           </section>
 
           <section className="search-results">
