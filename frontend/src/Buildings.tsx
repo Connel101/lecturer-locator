@@ -60,45 +60,102 @@ function Buildings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [buildingName, setBuildingName] = useState("");
+  const [floorLevel, setFloorLevel] = useState("");
+  const [fileRef, setFileRef] = useState("");
+  const [floorPlanSaving, setFloorPlanSaving] = useState(false);
+  const [floorPlanError, setFloorPlanError] = useState("");
 
-useEffect(() => {
-  let cancelled = false;
+  useEffect(() => {
+    let cancelled = false;
 
-  Promise.all([
-    getJson<{ floorPlans: FloorPlan[] }>("/api/admin/floor-plans"),
-    getJson<{ offices: Office[] }>("/api/admin/offices"),
-    getJson<{ routes: ManagedRoute[] }>("/api/admin/routes"),
-  ])
-    .then(([floorPlanData, officeData, routeData]) => {
-      if (cancelled) {
-        return;
+    Promise.all([
+      getJson<{ floorPlans: FloorPlan[] }>("/api/admin/floor-plans"),
+      getJson<{ offices: Office[] }>("/api/admin/offices"),
+      getJson<{ routes: ManagedRoute[] }>("/api/admin/routes"),
+    ])
+      .then(([floorPlanData, officeData, routeData]) => {
+        if (cancelled) {
+          return;
+        }
+
+        setFloorPlans(floorPlanData.floorPlans);
+        setOffices(officeData.offices);
+        setRoutes(routeData.routes);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) {
+          return;
+        }
+
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Unable to load location management data.",
+        );
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoading(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  async function handleCreateFloorPlan(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    setFloorPlanSaving(true);
+    setFloorPlanError("");
+
+    try {
+      const response = await fetch("/api/admin/floor-plans", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          buildingName,
+          floorLevel: Number(floorLevel),
+          fileRef,
+        }),
+      });
+
+      if (!response.ok) {
+        let message = `Request failed with status ${response.status}.`;
+
+        try {
+          const data = (await response.json()) as ApiErrorResponse;
+
+          if (data.error?.message) {
+            message = data.error.message;
+          }
+        } catch {
+          // Keep the fallback message if the response is not JSON.
+        }
+
+        throw new Error(message);
       }
 
-      setFloorPlans(floorPlanData.floorPlans);
-      setOffices(officeData.offices);
-      setRoutes(routeData.routes);
-    })
-    .catch((err: unknown) => {
-      if (cancelled) {
-        return;
-      }
+      const created = (await response.json()) as FloorPlan;
 
-      setError(
+      setFloorPlans((current) => [...current, created]);
+      setBuildingName("");
+      setFloorLevel("");
+      setFileRef("");
+    } catch (err) {
+      setFloorPlanError(
         err instanceof Error
           ? err.message
-          : "Unable to load location management data.",
+          : "Unable to create the floor plan.",
       );
-    })
-    .finally(() => {
-      if (!cancelled) {
-        setLoading(false);
-      }
-    });
-
-  return () => {
-    cancelled = true;
-  };
-}, []);
+    } finally {
+      setFloorPlanSaving(false);
+    }
+  }
 
   return (
     <main className="page-shell">
@@ -118,6 +175,53 @@ useEffect(() => {
         <>
           <section className="search-results">
             <h2>Floor plans</h2>
+            <form className="lecturer-list" onSubmit={handleCreateFloorPlan}>
+              <label className="search-field">
+                Building name
+                <input
+                  type="text"
+                  value={buildingName}
+                  onChange={(event) => setBuildingName(event.target.value)}
+                  required
+                />
+              </label>
+
+              <label className="search-field">
+                Floor level
+                <input
+                  type="number"
+                  step="1"
+                  value={floorLevel}
+                  onChange={(event) => setFloorLevel(event.target.value)}
+                  required
+                />
+              </label>
+
+              <label className="search-field">
+                Floor plan file
+                <input
+                  type="text"
+                  value={fileRef}
+                  onChange={(event) => setFileRef(event.target.value)}
+                  placeholder="/data/floorplans/groundfloor.svg"
+                  required
+                />
+              </label>
+
+              <button
+                className="primary-button"
+                type="submit"
+                disabled={floorPlanSaving}
+              >
+                {floorPlanSaving ? "Adding floor plan..." : "Add floor plan"}
+              </button>
+
+              {floorPlanError && (
+                <p className="status-message status-message--error">
+                  {floorPlanError}
+                </p>
+              )}
+            </form>
 
             {floorPlans.length === 0 ? (
               <p className="status-message">No floor plans have been added.</p>
