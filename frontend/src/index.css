@@ -228,3 +228,26 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
   background: #1f1923;
   text-align: center;
 }
+
+.admin-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.admin-action-button {
+  padding: 0.45rem 0.8rem;
+  color: #4b145f;
+  background: transparent;
+  border: 1px solid #d9cfde;
+  border-radius: 0.65rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.admin-action-button:hover,
+.admin-action-button:focus-visible {
+  border-color: #8539b6;
+  background: #f4edf7;
+}

@@ -60,6 +60,13 @@ function Buildings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  const [editingFloorPlanId, setEditingFloorPlanId] = useState<number | null>(null);
+  const [editBuildingName, setEditBuildingName] = useState("");
+  const [editFloorLevel, setEditFloorLevel] = useState("");
+  const [editFileRef, setEditFileRef] = useState("");
+  const [floorPlanUpdating, setFloorPlanUpdating] = useState(false);
+  const [floorPlanEditError, setFloorPlanEditError] = useState("");
+
   const [buildingName, setBuildingName] = useState("");
   const [floorLevel, setFloorLevel] = useState("");
   const [fileRef, setFileRef] = useState("");
@@ -157,6 +164,86 @@ function Buildings() {
     }
   }
 
+  function handleStartEditFloorPlan(floorPlan: FloorPlan) {
+    setEditingFloorPlanId(floorPlan.id);
+    setEditBuildingName(floorPlan.buildingName);
+    setEditFloorLevel(String(floorPlan.floorLevel));
+    setEditFileRef(floorPlan.fileRef);
+    setFloorPlanEditError("");
+  }
+
+  function handleCancelEditFloorPlan() {
+    setEditingFloorPlanId(null);
+    setEditBuildingName("");
+    setEditFloorLevel("");
+    setEditFileRef("");
+    setFloorPlanEditError("");
+  }
+
+  async function handleUpdateFloorPlan(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
+    event.preventDefault();
+
+    if (editingFloorPlanId === null) {
+      return;
+    }
+
+    setFloorPlanUpdating(true);
+    setFloorPlanEditError("");
+
+    try {
+      const response = await fetch(
+        `/api/admin/floor-plans/${editingFloorPlanId}`,
+        {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            buildingName: editBuildingName,
+            floorLevel: Number(editFloorLevel),
+            fileRef: editFileRef,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        let message = `Request failed with status ${response.status}.`;
+
+        try {
+          const data = (await response.json()) as ApiErrorResponse;
+
+          if (data.error?.message) {
+            message = data.error.message;
+          }
+        } catch {
+          // Keep the fallback message if the response is not JSON.
+        }
+
+        throw new Error(message);
+      }
+
+      const updated = (await response.json()) as FloorPlan;
+
+      setFloorPlans((current) =>
+        current.map((floorPlan) =>
+          floorPlan.id === updated.id ? updated : floorPlan,
+        ),
+      );
+
+      handleCancelEditFloorPlan();
+    } catch (err) {
+      setFloorPlanEditError(
+        err instanceof Error
+          ? err.message
+          : "Unable to update the floor plan.",
+      );
+    } finally {
+      setFloorPlanUpdating(false);
+    }
+  }
+
   return (
     <main className="page-shell">
       <p className="eyebrow">Administration</p>
@@ -229,9 +316,78 @@ function Buildings() {
               <div className="lecturer-list">
                 {floorPlans.map((floorPlan) => (
                   <article className="lecturer-card" key={floorPlan.id}>
-                    <strong>{floorPlan.buildingName}</strong>
-                    <span>Floor {floorPlan.floorLevel}</span>
-                    <span>{floorPlan.fileRef}</span>
+                    {editingFloorPlanId === floorPlan.id ? (
+                      <form onSubmit={handleUpdateFloorPlan} className="lecturer-list">
+                        <label className="search-field">
+                          Building name
+                          <input
+                            type="text"
+                            value={editBuildingName}
+                            onChange={(event) => setEditBuildingName(event.target.value)}
+                            required
+                          />
+                        </label>
+
+                        <label className="search-field">
+                          Floor level
+                          <input
+                            type="number"
+                            step="1"
+                            value={editFloorLevel}
+                            onChange={(event) => setEditFloorLevel(event.target.value)}
+                            required
+                          />
+                        </label>
+
+                        <label className="search-field">
+                          Floor plan file
+                          <input
+                            type="text"
+                            value={editFileRef}
+                            onChange={(event) => setEditFileRef(event.target.value)}
+                            required
+                          />
+                        </label>
+
+                        <button
+                          className="primary-button"
+                          type="submit"
+                          disabled={floorPlanUpdating}
+                        >
+                          {floorPlanUpdating ? "Saving..." : "Save"}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleCancelEditFloorPlan}
+                          disabled={floorPlanUpdating}
+                        >
+                          Cancel
+                        </button>
+
+                        {floorPlanEditError && (
+                          <p className="status-message status-message--error">
+                            {floorPlanEditError}
+                          </p>
+                        )}
+                      </form>
+                    ) : (
+                      <>
+                        <strong>{floorPlan.buildingName}</strong>
+                        <span>Floor {floorPlan.floorLevel}</span>
+                        <span>{floorPlan.fileRef}</span>
+
+                        <div className="admin-card-actions">
+                          <button
+                            type="button"
+                            className="admin-action-button"
+                            onClick={() => handleStartEditFloorPlan(floorPlan)}
+                          >
+                            Edit
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </article>
                 ))}
               </div>
