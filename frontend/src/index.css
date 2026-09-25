@@ -9,7 +9,7 @@
 
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; min-height: 100vh; }
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 
 .top-nav {
   position: relative;
@@ -278,4 +278,20 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
   align-items: stretch;
   gap: 0.5rem;
   margin-top: 0;
+}
+
+.search-field select {
+  width: 100%;
+  padding: 1rem 1.1rem;
+  color: #261632;
+  background: #fff;
+  border: 1px solid #d9cfde;
+  border-radius: 0.9rem;
+  outline: none;
+  box-shadow: 0 8px 24px rgba(60, 16, 83, 0.05);
+}
+
+.search-field select:focus {
+  border-color: #8539b6;
+  box-shadow: 0 0 0 3px rgba(133, 57, 182, 0.13);
 }

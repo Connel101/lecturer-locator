@@ -77,6 +77,19 @@ function Buildings() {
   const [floorPlanSaving, setFloorPlanSaving] = useState(false);
   const [floorPlanError, setFloorPlanError] = useState("");
 
+  const [officeRoomNumber, setOfficeRoomNumber] = useState("");
+  const [officeFloorPlanId, setOfficeFloorPlanId] = useState("");
+  const [officeSaving, setOfficeSaving] = useState(false);
+  const [officeError, setOfficeError] = useState("");
+
+  const [editingOfficeId, setEditingOfficeId] = useState<number | null>(null);
+  const [editOfficeRoomNumber, setEditOfficeRoomNumber] = useState("");
+  const [officeUpdating, setOfficeUpdating] = useState(false);
+  const [officeEditError, setOfficeEditError] = useState("");
+
+  const [deletingOfficeId, setDeletingOfficeId] = useState<number | null>(null);
+  const [officeDeleteError, setOfficeDeleteError] = useState("");
+
   useEffect(() => {
     let cancelled = false;
 
@@ -115,6 +128,18 @@ function Buildings() {
       cancelled = true;
     };
   }, []);
+
+  function formatFloorLevel(floorLevel: number): string {
+    if (floorLevel === 0) {
+      return "Ground floor";
+    }
+
+    if (floorLevel === -1) {
+      return "Basement";
+    }
+
+    return `Floor ${floorLevel}`;
+  }
 
   async function handleCreateFloorPlan(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -250,7 +275,7 @@ function Buildings() {
 
   async function handleDeleteFloorPlan(floorPlan: FloorPlan) {
     const confirmed = window.confirm(
-      `Delete ${floorPlan.buildingName}, floor ${floorPlan.floorLevel}?`,
+      `Delete ${floorPlan.buildingName}, ${formatFloorLevel(floorPlan.floorLevel)}?`,
     );
 
     if (!confirmed) {
@@ -292,6 +317,211 @@ function Buildings() {
       );
     } finally {
       setDeletingFloorPlanId(null);
+    }
+  }
+
+  async function handleCreateOffice(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const selectedFloorPlan = floorPlans.find(
+      (floorPlan) => floorPlan.id === Number(officeFloorPlanId),
+    );
+
+    if (!selectedFloorPlan) {
+      setOfficeError("Select a valid floor plan.");
+      return;
+    }
+
+    setOfficeSaving(true);
+    setOfficeError("");
+
+    try {
+      const response = await fetch("/api/admin/offices", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          floorPlanId: Number(officeFloorPlanId),
+          roomNumber: officeRoomNumber,
+        }),
+      });
+
+      if (!response.ok) {
+        let message = `Request failed with status ${response.status}.`;
+
+        try {
+          const data = (await response.json()) as ApiErrorResponse;
+
+          if (data.error?.message) {
+            message = data.error.message;
+          }
+        } catch {
+          // Keep the fallback message if the response is not JSON.
+        }
+
+        throw new Error(message);
+      }
+
+      const created = (await response.json()) as {
+        id: number;
+        roomNumber: string;
+        floorPlanId: number;
+      };
+
+      const createdOffice: Office = {
+        id: created.id,
+        roomNumber: created.roomNumber,
+        floorPlanId: created.floorPlanId,
+        buildingName: selectedFloorPlan.buildingName,
+        floorLevel: selectedFloorPlan.floorLevel,
+      };
+
+      setOffices((current) => [...current, createdOffice]);
+      setOfficeRoomNumber("");
+      setOfficeFloorPlanId("");
+    } catch (err) {
+      setOfficeError(
+        err instanceof Error ? err.message : "Unable to create the office.",
+      );
+    } finally {
+      setOfficeSaving(false);
+    }
+  }
+
+function handleStartEditOffice(office: Office) {
+  setEditingOfficeId(office.id);
+  setEditOfficeRoomNumber(office.roomNumber);
+  setOfficeEditError("");
+}
+
+function handleCancelEditOffice() {
+  setEditingOfficeId(null);
+  setEditOfficeRoomNumber("");
+  setOfficeEditError("");
+}
+
+async function handleUpdateOffice(
+  event: React.FormEvent<HTMLFormElement>,
+) {
+  event.preventDefault();
+
+  if (editingOfficeId === null) {
+    return;
+  }
+
+  setOfficeUpdating(true);
+  setOfficeEditError("");
+
+  try {
+    const response = await fetch(`/api/admin/offices/${editingOfficeId}`, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        roomNumber: editOfficeRoomNumber,
+      }),
+    });
+
+    if (!response.ok) {
+      let message = `Request failed with status ${response.status}.`;
+
+      try {
+        const data = (await response.json()) as ApiErrorResponse;
+
+        if (data.error?.message) {
+          message = data.error.message;
+        }
+      } catch {
+        // Keep the fallback message if the response is not JSON.
+      }
+
+      throw new Error(message);
+    }
+
+    const updated = (await response.json()) as {
+      id: number;
+      roomNumber: string;
+      floorPlanId: number;
+    };
+
+    setOffices((current) =>
+      current.map((office) =>
+        office.id === updated.id
+          ? { ...office, roomNumber: updated.roomNumber }
+          : office,
+      ),
+    );
+
+    setRoutes((current) =>
+      current.map((route) =>
+        route.officeId === updated.id
+          ? { ...route, roomNumber: updated.roomNumber }
+          : route,
+      ),
+    );
+
+    handleCancelEditOffice();
+  } catch (err) {
+    setOfficeEditError(
+      err instanceof Error ? err.message : "Unable to update the office.",
+    );
+  } finally {
+    setOfficeUpdating(false);
+  }
+}
+
+  async function handleDeleteOffice(office: Office) {
+    const confirmed = window.confirm(
+      `Delete office ${office.roomNumber}? Any assigned lecturers will be unassigned and its predefined route will also be removed.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingOfficeId(office.id);
+    setOfficeDeleteError("");
+
+    try {
+      const response = await fetch(`/api/admin/offices/${office.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        let message = `Request failed with status ${response.status}.`;
+
+        try {
+          const data = (await response.json()) as ApiErrorResponse;
+
+          if (data.error?.message) {
+            message = data.error.message;
+          }
+        } catch {
+          // Keep the fallback message if the response is not JSON.
+        }
+
+        throw new Error(message);
+      }
+
+      setOffices((current) =>
+        current.filter((item) => item.id !== office.id),
+      );
+
+      setRoutes((current) =>
+        current.filter((route) => route.officeId !== office.id),
+      );
+
+      if (editingOfficeId === office.id) {
+        handleCancelEditOffice();
+      }
+    } catch (err) {
+      setOfficeDeleteError(
+        err instanceof Error ? err.message : "Unable to delete the office.",
+      );
+    } finally {
+      setDeletingOfficeId(null);
     }
   }
 
@@ -426,7 +656,7 @@ function Buildings() {
                       <>
                         <div className="admin-card-details">
                           <strong>{floorPlan.buildingName}</strong>
-                          <span>Floor {floorPlan.floorLevel}</span>
+                          <span>{formatFloorLevel(floorPlan.floorLevel)}</span>
                           <span>{floorPlan.fileRef}</span>
                         </div>
 
@@ -469,19 +699,146 @@ function Buildings() {
           <section className="search-results">
             <h2>Offices</h2>
 
+            <form className="lecturer-list" onSubmit={handleCreateOffice}>
+              <label className="search-field">
+                Room number
+                <input
+                  type="text"
+                  value={officeRoomNumber}
+                  onChange={(event) => setOfficeRoomNumber(event.target.value)}
+                  placeholder="e.g. G17"
+                  required
+                />
+              </label>
+
+              <label className="search-field">
+                Floor plan
+                <select
+                  value={officeFloorPlanId}
+                  onChange={(event) => setOfficeFloorPlanId(event.target.value)}
+                  required
+                >
+                  <option value="">Select a floor plan</option>
+
+                  {floorPlans.map((floorPlan) => (
+                    <option key={floorPlan.id} value={floorPlan.id}>
+                      {floorPlan.buildingName}, {formatFloorLevel(floorPlan.floorLevel)}
+                    </option>
+                  ))}
+                </select>
+              </label>
+
+              <button
+                className="primary-button"
+                type="submit"
+                disabled={officeSaving}
+              >
+                {officeSaving ? "Adding office..." : "Add office"}
+              </button>
+
+              {officeError && (
+                <p className="status-message status-message--error">
+                  {officeError}
+                </p>
+              )}
+            </form>
+
             {offices.length === 0 ? (
               <p className="status-message">No offices have been added.</p>
             ) : (
               <div className="lecturer-list">
                 {offices.map((office) => (
-                  <article className="lecturer-card" key={office.id}>
-                    <strong>{office.roomNumber}</strong>
-                    <span>
-                      {office.buildingName}, floor {office.floorLevel}
-                    </span>
+                  <article
+                    className="lecturer-card admin-management-card"
+                    key={office.id}
+                  >
+                    {editingOfficeId === office.id ? (
+                      <form onSubmit={handleUpdateOffice} className="lecturer-list">
+                        <label className="search-field">
+                          Room number
+                          <input
+                            type="text"
+                            value={editOfficeRoomNumber}
+                            onChange={(event) =>
+                              setEditOfficeRoomNumber(event.target.value)
+                            }
+                            required
+                          />
+                        </label>
+
+                        <div className="admin-card-details">
+                          <span>
+                            Floor plan: {office.buildingName},{" "}
+                            {formatFloorLevel(office.floorLevel)}
+                          </span>
+                        </div>
+
+                        <button
+                          className="primary-button"
+                          type="submit"
+                          disabled={officeUpdating}
+                        >
+                          {officeUpdating ? "Saving..." : "Save"}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleCancelEditOffice}
+                          disabled={officeUpdating}
+                        >
+                          Cancel
+                        </button>
+
+                        {officeEditError && (
+                          <p className="status-message status-message--error">
+                            {officeEditError}
+                          </p>
+                        )}
+                      </form>
+                    ) : (
+                      <>
+                        <div className="admin-card-details">
+                          <strong>{office.roomNumber}</strong>
+                          <span>
+                            {office.buildingName},{" "}
+                            {formatFloorLevel(office.floorLevel)}
+                          </span>
+                        </div>
+
+                        <div className="admin-card-actions">
+                          <button
+                            type="button"
+                            className="admin-action-button"
+                            onClick={() => handleStartEditOffice(office)}
+                            disabled={deletingOfficeId === office.id}
+                          >
+                            <FontAwesomeIcon icon={faPen} aria-hidden="true" />
+                            Edit
+                          </button>
+
+                          <button
+                            type="button"
+                            className="admin-action-button admin-action-button--danger"
+                            onClick={() => void handleDeleteOffice(office)}
+                            disabled={deletingOfficeId === office.id}
+                          >
+                            <FontAwesomeIcon icon={faTrash} aria-hidden="true" />
+                            {deletingOfficeId === office.id
+                              ? "Deleting..."
+                              : "Delete"}
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </article>
                 ))}
               </div>
+            )}
+
+            {officeDeleteError && (
+              <p className="status-message status-message--error">
+                {officeDeleteError}
+              </p>
             )}
           </section>
 
@@ -498,7 +855,7 @@ function Buildings() {
                   <article className="lecturer-card" key={route.id}>
                     <strong>{route.roomNumber}</strong>
                     <span>
-                      {route.buildingName}, floor {route.floorLevel}
+                      {route.buildingName}, {formatFloorLevel(route.floorLevel)}
                     </span>
                     <span>Entrance: {route.entrancePoint}</span>
                     <span>
