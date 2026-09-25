@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
 
 interface FloorPlan {
   id: number;
@@ -435,15 +437,17 @@ function Buildings() {
                             onClick={() => handleStartEditFloorPlan(floorPlan)}
                             disabled={deletingFloorPlanId === floorPlan.id}
                           >
+                            <FontAwesomeIcon icon={faPen} aria-hidden="true" />
                             Edit
                           </button>
 
                           <button
                             type="button"
-                            className="admin-action-button"
+                            className="admin-action-button admin-action-button--danger"
                             onClick={() => void handleDeleteFloorPlan(floorPlan)}
                             disabled={deletingFloorPlanId === floorPlan.id}
                           >
+                            <FontAwesomeIcon icon={faTrash} aria-hidden="true" />
                             {deletingFloorPlanId === floorPlan.id ? "Deleting..." : "Delete"}
                           </button>
                         </div>

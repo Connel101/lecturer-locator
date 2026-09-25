@@ -230,14 +230,22 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
 }
 
 .admin-action-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.45rem;
   padding: 0.45rem 0.8rem;
-  min-width: 5rem;
+  min-width: 6.5rem;
   color: #4b145f;
   background: transparent;
   border: 1px solid #d9cfde;
   border-radius: 0.65rem;
   font-weight: 700;
   cursor: pointer;
+}
+
+.admin-action-button--danger {
+  color: #8a1c1c;
 }
 
 .admin-action-button:hover,
