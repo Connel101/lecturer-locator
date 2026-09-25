@@ -23,6 +23,7 @@ interface ManagedRoute {
   entrancePoint: string;
   svgOverlay: string | null;
   roomNumber: string;
+  floorPlanId: number;
   buildingName: string;
   floorLevel: number;
 }
@@ -62,13 +63,17 @@ function Buildings() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  const [editingFloorPlanId, setEditingFloorPlanId] = useState<number | null>(null);
+  const [editingFloorPlanId, setEditingFloorPlanId] = useState<number | null>(
+    null,
+  );
   const [editBuildingName, setEditBuildingName] = useState("");
   const [editFloorLevel, setEditFloorLevel] = useState("");
   const [editFileRef, setEditFileRef] = useState("");
   const [floorPlanUpdating, setFloorPlanUpdating] = useState(false);
   const [floorPlanEditError, setFloorPlanEditError] = useState("");
-  const [deletingFloorPlanId, setDeletingFloorPlanId] = useState<number | null>(null);
+  const [deletingFloorPlanId, setDeletingFloorPlanId] = useState<number | null>(
+    null,
+  );
   const [floorPlanDeleteError, setFloorPlanDeleteError] = useState("");
 
   const [buildingName, setBuildingName] = useState("");
@@ -89,6 +94,22 @@ function Buildings() {
 
   const [deletingOfficeId, setDeletingOfficeId] = useState<number | null>(null);
   const [officeDeleteError, setOfficeDeleteError] = useState("");
+
+  const [routeOfficeId, setRouteOfficeId] = useState("");
+  const [routeEntrancePoint, setRouteEntrancePoint] = useState("");
+  const [routeSvgOverlay, setRouteSvgOverlay] = useState("");
+  const [routeSaving, setRouteSaving] = useState(false);
+  const [routeError, setRouteError] = useState("");
+
+  const [editingRouteId, setEditingRouteId] = useState<number | null>(null);
+  const [editRouteOfficeId, setEditRouteOfficeId] = useState("");
+  const [editRouteEntrancePoint, setEditRouteEntrancePoint] = useState("");
+  const [editRouteSvgOverlay, setEditRouteSvgOverlay] = useState("");
+  const [routeUpdating, setRouteUpdating] = useState(false);
+  const [routeEditError, setRouteEditError] = useState("");
+
+  const [deletingRouteId, setDeletingRouteId] = useState<number | null>(null);
+  const [routeDeleteError, setRouteDeleteError] = useState("");
 
   useEffect(() => {
     let cancelled = false;
@@ -141,7 +162,9 @@ function Buildings() {
     return `Floor ${floorLevel}`;
   }
 
-  async function handleCreateFloorPlan(event: React.FormEvent<HTMLFormElement>) {
+  async function handleCreateFloorPlan(
+    event: React.FormEvent<HTMLFormElement>,
+  ) {
     event.preventDefault();
 
     setFloorPlanSaving(true);
@@ -184,9 +207,7 @@ function Buildings() {
       setFileRef("");
     } catch (err) {
       setFloorPlanError(
-        err instanceof Error
-          ? err.message
-          : "Unable to create the floor plan.",
+        err instanceof Error ? err.message : "Unable to create the floor plan.",
       );
     } finally {
       setFloorPlanSaving(false);
@@ -264,9 +285,7 @@ function Buildings() {
       handleCancelEditFloorPlan();
     } catch (err) {
       setFloorPlanEditError(
-        err instanceof Error
-          ? err.message
-          : "Unable to update the floor plan.",
+        err instanceof Error ? err.message : "Unable to update the floor plan.",
       );
     } finally {
       setFloorPlanUpdating(false);
@@ -311,9 +330,7 @@ function Buildings() {
       );
     } catch (err) {
       setFloorPlanDeleteError(
-        err instanceof Error
-          ? err.message
-          : "Unable to delete the floor plan.",
+        err instanceof Error ? err.message : "Unable to delete the floor plan.",
       );
     } finally {
       setDeletingFloorPlanId(null);
@@ -389,88 +406,86 @@ function Buildings() {
     }
   }
 
-function handleStartEditOffice(office: Office) {
-  setEditingOfficeId(office.id);
-  setEditOfficeRoomNumber(office.roomNumber);
-  setOfficeEditError("");
-}
-
-function handleCancelEditOffice() {
-  setEditingOfficeId(null);
-  setEditOfficeRoomNumber("");
-  setOfficeEditError("");
-}
-
-async function handleUpdateOffice(
-  event: React.FormEvent<HTMLFormElement>,
-) {
-  event.preventDefault();
-
-  if (editingOfficeId === null) {
-    return;
+  function handleStartEditOffice(office: Office) {
+    setEditingOfficeId(office.id);
+    setEditOfficeRoomNumber(office.roomNumber);
+    setOfficeEditError("");
   }
 
-  setOfficeUpdating(true);
-  setOfficeEditError("");
+  function handleCancelEditOffice() {
+    setEditingOfficeId(null);
+    setEditOfficeRoomNumber("");
+    setOfficeEditError("");
+  }
 
-  try {
-    const response = await fetch(`/api/admin/offices/${editingOfficeId}`, {
-      method: "PATCH",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        roomNumber: editOfficeRoomNumber,
-      }),
-    });
+  async function handleUpdateOffice(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-    if (!response.ok) {
-      let message = `Request failed with status ${response.status}.`;
-
-      try {
-        const data = (await response.json()) as ApiErrorResponse;
-
-        if (data.error?.message) {
-          message = data.error.message;
-        }
-      } catch {
-        // Keep the fallback message if the response is not JSON.
-      }
-
-      throw new Error(message);
+    if (editingOfficeId === null) {
+      return;
     }
 
-    const updated = (await response.json()) as {
-      id: number;
-      roomNumber: string;
-      floorPlanId: number;
-    };
+    setOfficeUpdating(true);
+    setOfficeEditError("");
 
-    setOffices((current) =>
-      current.map((office) =>
-        office.id === updated.id
-          ? { ...office, roomNumber: updated.roomNumber }
-          : office,
-      ),
-    );
+    try {
+      const response = await fetch(`/api/admin/offices/${editingOfficeId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          roomNumber: editOfficeRoomNumber,
+        }),
+      });
 
-    setRoutes((current) =>
-      current.map((route) =>
-        route.officeId === updated.id
-          ? { ...route, roomNumber: updated.roomNumber }
-          : route,
-      ),
-    );
+      if (!response.ok) {
+        let message = `Request failed with status ${response.status}.`;
 
-    handleCancelEditOffice();
-  } catch (err) {
-    setOfficeEditError(
-      err instanceof Error ? err.message : "Unable to update the office.",
-    );
-  } finally {
-    setOfficeUpdating(false);
+        try {
+          const data = (await response.json()) as ApiErrorResponse;
+
+          if (data.error?.message) {
+            message = data.error.message;
+          }
+        } catch {
+          // Keep the fallback message if the response is not JSON.
+        }
+
+        throw new Error(message);
+      }
+
+      const updated = (await response.json()) as {
+        id: number;
+        roomNumber: string;
+        floorPlanId: number;
+      };
+
+      setOffices((current) =>
+        current.map((office) =>
+          office.id === updated.id
+            ? { ...office, roomNumber: updated.roomNumber }
+            : office,
+        ),
+      );
+
+      setRoutes((current) =>
+        current.map((route) =>
+          route.officeId === updated.id
+            ? { ...route, roomNumber: updated.roomNumber }
+            : route,
+        ),
+      );
+
+      handleCancelEditOffice();
+    } catch (err) {
+      setOfficeEditError(
+        err instanceof Error ? err.message : "Unable to update the office.",
+      );
+    } finally {
+      setOfficeUpdating(false);
+    }
   }
-}
 
   async function handleDeleteOffice(office: Office) {
     const confirmed = window.confirm(
@@ -505,9 +520,7 @@ async function handleUpdateOffice(
         throw new Error(message);
       }
 
-      setOffices((current) =>
-        current.filter((item) => item.id !== office.id),
-      );
+      setOffices((current) => current.filter((item) => item.id !== office.id));
 
       setRoutes((current) =>
         current.filter((route) => route.officeId !== office.id),
@@ -522,6 +535,227 @@ async function handleUpdateOffice(
       );
     } finally {
       setDeletingOfficeId(null);
+    }
+  }
+
+  async function handleCreateRoute(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    const selectedOffice = offices.find(
+      (office) => office.id === Number(routeOfficeId),
+    );
+
+    if (!selectedOffice) {
+      setRouteError("Select a valid office.");
+      return;
+    }
+
+    setRouteSaving(true);
+    setRouteError("");
+
+    try {
+      const response = await fetch("/api/admin/routes", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          officeId: Number(routeOfficeId),
+          entrancePoint: routeEntrancePoint,
+          svgOverlay: routeSvgOverlay.trim() === "" ? null : routeSvgOverlay,
+        }),
+      });
+
+      if (!response.ok) {
+        let message = `Request failed with status ${response.status}.`;
+
+        try {
+          const data = (await response.json()) as ApiErrorResponse;
+
+          if (data.error?.message) {
+            message = data.error.message;
+          }
+        } catch {
+          // Keep the fallback message if the response is not JSON.
+        }
+
+        throw new Error(message);
+      }
+
+      const created = (await response.json()) as {
+        id: number;
+        officeId: number;
+        entrancePoint: string;
+        svgOverlay: string | null;
+      };
+
+      const createdRoute: ManagedRoute = {
+        id: created.id,
+        officeId: created.officeId,
+        entrancePoint: created.entrancePoint,
+        svgOverlay: created.svgOverlay,
+        roomNumber: selectedOffice.roomNumber,
+        floorPlanId: selectedOffice.floorPlanId,
+        buildingName: selectedOffice.buildingName,
+        floorLevel: selectedOffice.floorLevel,
+      };
+
+      setRoutes((current) => [...current, createdRoute]);
+      setRouteOfficeId("");
+      setRouteEntrancePoint("");
+      setRouteSvgOverlay("");
+    } catch (err) {
+      setRouteError(
+        err instanceof Error ? err.message : "Unable to create the route.",
+      );
+    } finally {
+      setRouteSaving(false);
+    }
+  }
+
+  function handleStartEditRoute(route: ManagedRoute) {
+    setEditingRouteId(route.id);
+    setEditRouteOfficeId(String(route.officeId));
+    setEditRouteEntrancePoint(route.entrancePoint);
+    setEditRouteSvgOverlay(route.svgOverlay ?? "");
+    setRouteEditError("");
+  }
+
+  function handleCancelEditRoute() {
+    setEditingRouteId(null);
+    setEditRouteOfficeId("");
+    setEditRouteEntrancePoint("");
+    setEditRouteSvgOverlay("");
+    setRouteEditError("");
+  }
+
+  async function handleUpdateRoute(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    if (editingRouteId === null) {
+      return;
+    }
+
+    const selectedOffice = offices.find(
+      (office) => office.id === Number(editRouteOfficeId),
+    );
+
+    if (!selectedOffice) {
+      setRouteEditError("Select a valid office.");
+      return;
+    }
+
+    setRouteUpdating(true);
+    setRouteEditError("");
+
+    try {
+      const response = await fetch(`/api/admin/routes/${editingRouteId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          officeId: Number(editRouteOfficeId),
+          entrancePoint: editRouteEntrancePoint,
+          svgOverlay:
+            editRouteSvgOverlay.trim() === "" ? null : editRouteSvgOverlay,
+        }),
+      });
+
+      if (!response.ok) {
+        let message = `Request failed with status ${response.status}.`;
+
+        try {
+          const data = (await response.json()) as ApiErrorResponse;
+
+          if (data.error?.message) {
+            message = data.error.message;
+          }
+        } catch {
+          // Keep the fallback message if the response is not JSON.
+        }
+
+        throw new Error(message);
+      }
+
+      const updated = (await response.json()) as {
+        id: number;
+        officeId: number;
+        entrancePoint: string;
+        svgOverlay: string | null;
+      };
+
+      const updatedRoute: ManagedRoute = {
+        id: updated.id,
+        officeId: updated.officeId,
+        entrancePoint: updated.entrancePoint,
+        svgOverlay: updated.svgOverlay,
+        roomNumber: selectedOffice.roomNumber,
+        floorPlanId: selectedOffice.floorPlanId,
+        buildingName: selectedOffice.buildingName,
+        floorLevel: selectedOffice.floorLevel,
+      };
+
+      setRoutes((current) =>
+        current.map((route) =>
+          route.id === updated.id ? updatedRoute : route,
+        ),
+      );
+
+      handleCancelEditRoute();
+    } catch (err) {
+      setRouteEditError(
+        err instanceof Error ? err.message : "Unable to update the route.",
+      );
+    } finally {
+      setRouteUpdating(false);
+    }
+  }
+
+  async function handleDeleteRoute(route: ManagedRoute) {
+    const confirmed = window.confirm(
+      `Delete the predefined route for office ${route.roomNumber}?`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    setDeletingRouteId(route.id);
+    setRouteDeleteError("");
+
+    try {
+      const response = await fetch(`/api/admin/routes/${route.id}`, {
+        method: "DELETE",
+      });
+
+      if (!response.ok) {
+        let message = `Request failed with status ${response.status}.`;
+
+        try {
+          const data = (await response.json()) as ApiErrorResponse;
+
+          if (data.error?.message) {
+            message = data.error.message;
+          }
+        } catch {
+          // Keep the fallback message if the response is not JSON.
+        }
+
+        throw new Error(message);
+      }
+
+      setRoutes((current) => current.filter((item) => item.id !== route.id));
+
+      if (editingRouteId === route.id) {
+        handleCancelEditRoute();
+      }
+    } catch (err) {
+      setRouteDeleteError(
+        err instanceof Error ? err.message : "Unable to delete the route.",
+      );
+    } finally {
+      setDeletingRouteId(null);
     }
   }
 
@@ -596,15 +830,23 @@ async function handleUpdateOffice(
             ) : (
               <div className="lecturer-list">
                 {floorPlans.map((floorPlan) => (
-                  <article className="lecturer-card admin-management-card" key={floorPlan.id}>
+                  <article
+                    className="lecturer-card admin-management-card"
+                    key={floorPlan.id}
+                  >
                     {editingFloorPlanId === floorPlan.id ? (
-                      <form onSubmit={handleUpdateFloorPlan} className="lecturer-list">
+                      <form
+                        onSubmit={handleUpdateFloorPlan}
+                        className="lecturer-list"
+                      >
                         <label className="search-field">
                           Building name
                           <input
                             type="text"
                             value={editBuildingName}
-                            onChange={(event) => setEditBuildingName(event.target.value)}
+                            onChange={(event) =>
+                              setEditBuildingName(event.target.value)
+                            }
                             required
                           />
                         </label>
@@ -615,7 +857,9 @@ async function handleUpdateOffice(
                             type="number"
                             step="1"
                             value={editFloorLevel}
-                            onChange={(event) => setEditFloorLevel(event.target.value)}
+                            onChange={(event) =>
+                              setEditFloorLevel(event.target.value)
+                            }
                             required
                           />
                         </label>
@@ -625,7 +869,9 @@ async function handleUpdateOffice(
                           <input
                             type="text"
                             value={editFileRef}
-                            onChange={(event) => setEditFileRef(event.target.value)}
+                            onChange={(event) =>
+                              setEditFileRef(event.target.value)
+                            }
                             required
                           />
                         </label>
@@ -674,11 +920,18 @@ async function handleUpdateOffice(
                           <button
                             type="button"
                             className="admin-action-button admin-action-button--danger"
-                            onClick={() => void handleDeleteFloorPlan(floorPlan)}
+                            onClick={() =>
+                              void handleDeleteFloorPlan(floorPlan)
+                            }
                             disabled={deletingFloorPlanId === floorPlan.id}
                           >
-                            <FontAwesomeIcon icon={faTrash} aria-hidden="true" />
-                            {deletingFloorPlanId === floorPlan.id ? "Deleting..." : "Delete"}
+                            <FontAwesomeIcon
+                              icon={faTrash}
+                              aria-hidden="true"
+                            />
+                            {deletingFloorPlanId === floorPlan.id
+                              ? "Deleting..."
+                              : "Delete"}
                           </button>
                         </div>
                       </>
@@ -693,7 +946,6 @@ async function handleUpdateOffice(
                 {floorPlanDeleteError}
               </p>
             )}
-
           </section>
 
           <section className="search-results">
@@ -722,7 +974,8 @@ async function handleUpdateOffice(
 
                   {floorPlans.map((floorPlan) => (
                     <option key={floorPlan.id} value={floorPlan.id}>
-                      {floorPlan.buildingName}, {formatFloorLevel(floorPlan.floorLevel)}
+                      {floorPlan.buildingName},{" "}
+                      {formatFloorLevel(floorPlan.floorLevel)}
                     </option>
                   ))}
                 </select>
@@ -753,7 +1006,10 @@ async function handleUpdateOffice(
                     key={office.id}
                   >
                     {editingOfficeId === office.id ? (
-                      <form onSubmit={handleUpdateOffice} className="lecturer-list">
+                      <form
+                        onSubmit={handleUpdateOffice}
+                        className="lecturer-list"
+                      >
                         <label className="search-field">
                           Room number
                           <input
@@ -822,7 +1078,10 @@ async function handleUpdateOffice(
                             onClick={() => void handleDeleteOffice(office)}
                             disabled={deletingOfficeId === office.id}
                           >
-                            <FontAwesomeIcon icon={faTrash} aria-hidden="true" />
+                            <FontAwesomeIcon
+                              icon={faTrash}
+                              aria-hidden="true"
+                            />
                             {deletingOfficeId === office.id
                               ? "Deleting..."
                               : "Delete"}
@@ -845,6 +1104,68 @@ async function handleUpdateOffice(
           <section className="search-results">
             <h2>Predefined routes</h2>
 
+            <form className="lecturer-list" onSubmit={handleCreateRoute}>
+              <label className="search-field">
+                Office
+                <select
+                  value={routeOfficeId}
+                  onChange={(event) => setRouteOfficeId(event.target.value)}
+                  required
+                >
+                  <option value="">Select an office</option>
+
+                  {offices
+                    .filter(
+                      (office) =>
+                        !routes.some((route) => route.officeId === office.id),
+                    )
+                    .map((office) => (
+                      <option key={office.id} value={office.id}>
+                        {office.roomNumber} - {office.buildingName},{" "}
+                        {formatFloorLevel(office.floorLevel)}
+                      </option>
+                    ))}
+                </select>
+              </label>
+
+              <label className="search-field">
+                Entrance
+                <input
+                  type="text"
+                  value={routeEntrancePoint}
+                  onChange={(event) =>
+                    setRouteEntrancePoint(event.target.value)
+                  }
+                  placeholder="e.g. Main entrance"
+                  required
+                />
+              </label>
+
+              <label className="search-field">
+                SVG route overlay
+                <textarea
+                  value={routeSvgOverlay}
+                  onChange={(event) => setRouteSvgOverlay(event.target.value)}
+                  placeholder='<svg xmlns="http://www.w3.org/2000/svg">...</svg>'
+                  rows={6}
+                />
+              </label>
+
+              <button
+                className="primary-button"
+                type="submit"
+                disabled={routeSaving}
+              >
+                {routeSaving ? "Adding route..." : "Add route"}
+              </button>
+
+              {routeError && (
+                <p className="status-message status-message--error">
+                  {routeError}
+                </p>
+              )}
+            </form>
+
             {routes.length === 0 ? (
               <p className="status-message">
                 No predefined routes have been added.
@@ -852,19 +1173,140 @@ async function handleUpdateOffice(
             ) : (
               <div className="lecturer-list">
                 {routes.map((route) => (
-                  <article className="lecturer-card" key={route.id}>
-                    <strong>{route.roomNumber}</strong>
-                    <span>
-                      {route.buildingName}, {formatFloorLevel(route.floorLevel)}
-                    </span>
-                    <span>Entrance: {route.entrancePoint}</span>
-                    <span>
-                      SVG overlay:{" "}
-                      {route.svgOverlay ? "Configured" : "Not configured"}
-                    </span>
+                  <article
+                    className="lecturer-card admin-management-card"
+                    key={route.id}
+                  >
+                    {editingRouteId === route.id ? (
+                      <form
+                        onSubmit={handleUpdateRoute}
+                        className="lecturer-list"
+                      >
+                        <label className="search-field">
+                          Office
+                          <select
+                            value={editRouteOfficeId}
+                            onChange={(event) =>
+                              setEditRouteOfficeId(event.target.value)
+                            }
+                            required
+                          >
+                            {offices
+                              .filter(
+                                (office) =>
+                                  office.id === route.officeId ||
+                                  !routes.some(
+                                    (otherRoute) =>
+                                      otherRoute.officeId === office.id &&
+                                      otherRoute.id !== route.id,
+                                  ),
+                              )
+                              .map((office) => (
+                                <option key={office.id} value={office.id}>
+                                  {office.roomNumber} - {office.buildingName},{" "}
+                                  {formatFloorLevel(office.floorLevel)}
+                                </option>
+                              ))}
+                          </select>
+                        </label>
+
+                        <label className="search-field">
+                          Entrance
+                          <input
+                            type="text"
+                            value={editRouteEntrancePoint}
+                            onChange={(event) =>
+                              setEditRouteEntrancePoint(event.target.value)
+                            }
+                            required
+                          />
+                        </label>
+
+                        <label className="search-field">
+                          SVG route overlay
+                          <textarea
+                            value={editRouteSvgOverlay}
+                            onChange={(event) =>
+                              setEditRouteSvgOverlay(event.target.value)
+                            }
+                            rows={6}
+                          />
+                        </label>
+
+                        <button
+                          className="primary-button"
+                          type="submit"
+                          disabled={routeUpdating}
+                        >
+                          {routeUpdating ? "Saving..." : "Save"}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={handleCancelEditRoute}
+                          disabled={routeUpdating}
+                        >
+                          Cancel
+                        </button>
+
+                        {routeEditError && (
+                          <p className="status-message status-message--error">
+                            {routeEditError}
+                          </p>
+                        )}
+                      </form>
+                    ) : (
+                      <>
+                        <div className="admin-card-details">
+                          <strong>{route.roomNumber}</strong>
+                          <span>
+                            {route.buildingName},{" "}
+                            {formatFloorLevel(route.floorLevel)}
+                          </span>
+                          <span>Entrance: {route.entrancePoint}</span>
+                          <span>
+                            SVG overlay:{" "}
+                            {route.svgOverlay ? "Configured" : "Not configured"}
+                          </span>
+                        </div>
+
+                        <div className="admin-card-actions">
+                          <button
+                            type="button"
+                            className="admin-action-button"
+                            onClick={() => handleStartEditRoute(route)}
+                            disabled={deletingRouteId === route.id}
+                          >
+                            <FontAwesomeIcon icon={faPen} aria-hidden="true" />
+                            Edit
+                          </button>
+
+                          <button
+                            type="button"
+                            className="admin-action-button admin-action-button--danger"
+                            onClick={() => void handleDeleteRoute(route)}
+                            disabled={deletingRouteId === route.id}
+                          >
+                            <FontAwesomeIcon
+                              icon={faTrash}
+                              aria-hidden="true"
+                            />
+                            {deletingRouteId === route.id
+                              ? "Deleting..."
+                              : "Delete"}
+                          </button>
+                        </div>
+                      </>
+                    )}
                   </article>
                 ))}
               </div>
+            )}
+
+            {routeDeleteError && (
+              <p className="status-message status-message--error">
+                {routeDeleteError}
+              </p>
             )}
           </section>
         </>
