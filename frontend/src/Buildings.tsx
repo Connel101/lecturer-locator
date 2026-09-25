@@ -282,6 +282,30 @@ function Buildings() {
         ),
       );
 
+      setOffices((current) =>
+        current.map((office) =>
+          office.floorPlanId === updated.id
+            ? {
+                ...office,
+                buildingName: updated.buildingName,
+                floorLevel: updated.floorLevel,
+              }
+            : office,
+        ),
+      );
+
+      setRoutes((current) =>
+        current.map((route) =>
+          route.floorPlanId === updated.id
+            ? {
+                ...route,
+                buildingName: updated.buildingName,
+                floorLevel: updated.floorLevel,
+              }
+            : route,
+        ),
+      );
+
       handleCancelEditFloorPlan();
     } catch (err) {
       setFloorPlanEditError(
