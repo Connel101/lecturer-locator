@@ -23,6 +23,7 @@ import {
   setLecturerActive,
   setLecturerOffice,
   updateLecturer,
+  searchLecturers
 } from "../controllers/admin-lecturers.ts";
 
 export const adminRouter = Router();
@@ -36,7 +37,9 @@ adminRouter.patch("/floor-plans/:id", updateFloorPlan);
 adminRouter.delete("/floor-plans/:id", deleteFloorPlan);
 
 // Lecturer management
+adminRouter.get("/lecturers", searchLecturers);
 adminRouter.get("/lecturers", listLecturers);
+
 adminRouter.post("/lecturers", createLecturer);
 adminRouter.patch("/lecturers/:id", updateLecturer);
 adminRouter.patch("/lecturers/:id/active", setLecturerActive);

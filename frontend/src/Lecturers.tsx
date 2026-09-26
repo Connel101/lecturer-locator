@@ -1,7 +1,7 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus } from '@fortawesome/free-solid-svg-icons'
+import { faPencil, faPlus, faTrash } from '@fortawesome/free-solid-svg-icons'
 
 interface LecturerOffice {
   buildingName: string | null
@@ -14,6 +14,7 @@ interface Lecturer {
   fullName: string
   title?: string | null
   department?: string | null
+  active: boolean
   office: LecturerOffice | null
 }
 
@@ -29,7 +30,44 @@ function Lecturers() {
   const [error, setError] = useState('')
 
   async function handleSearch(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault()
+  event.preventDefault()
+  await searchLecturers(searchTerm)
+}
+
+
+useEffect(() => {
+  searchLecturers('')
+}, [])
+
+  async function toggleLecturerActive(id: string, active: boolean) {
+  try {
+    const response = await fetch(`/api/admin/lecturers/${id}/active`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        active: !active,
+      }),
+    })
+
+    if (!response.ok) {
+      throw new Error('Failed to update lecturer status')
+    }
+
+    // Update the lecturer in the UI
+    setLecturers((currentLecturers) =>
+      currentLecturers.map((lecturer) =>
+        lecturer.id === id
+          ? { ...lecturer, active: !active }
+          : lecturer
+      )
+    )
+  } catch {
+    setError('The lecturer status could not be updated. Please try again.')
+  }
+}
+  async function searchLecturers(search: string) {
 
     setIsLoading(true)
     setLecturers([])
@@ -37,8 +75,8 @@ function Lecturers() {
     setHasSearched(true)
 
     try {
-      const query = encodeURIComponent(searchTerm.trim())
-      const response = await fetch(`/api/lecturers?search=${query}`)
+      const query = encodeURIComponent(search.trim())
+      const response = await fetch(`/api/admin/lecturers?search=${query}`)
 
       if (!response.ok) {
         throw new Error('Search request failed')
@@ -53,6 +91,10 @@ function Lecturers() {
       setIsLoading(false)
     }
   }
+
+
+
+
 
 
   return (
@@ -98,9 +140,16 @@ function Lecturers() {
     
                 <div className="lecturer-list">
                   {lecturers.map((lecturer) => (
-                    <div className="lecturer-card" key={lecturer.id}>
-                      <div className="lecturer-card-details">
-                        <strong>{lecturer.fullName}</strong>
+                    <div className="lecturer-card-lecturers" key={lecturer.id}>
+                      <div className="lecturer-card-details-lecturers">
+                        <div className="lecturer-name-row-lecturers">
+                          <strong>{lecturer.fullName}</strong>
+                          <span
+                            className={`lecturer-status-lecturers ${lecturer.active === false ? 'lecturer-status-lecturers--inactive' : 'lecturer-status-lecturers--active'}`}
+                          >
+                            {lecturer.active === false ? 'Inactive' : 'Active'}
+                          </span>
+                        </div>
 
                         {(lecturer.title || lecturer.department) && (
                           <span>
@@ -116,10 +165,37 @@ function Lecturers() {
                             : 'Office not assigned'}
                         </span>
                         </div>
-
-                      <Link to={`/lecturer/edit/${lecturer.id}`} className="edit-lecturer-button">
-                        Edit
-                      </Link>
+                      
+                      {!lecturer.active && (
+                        <div className="lecturer-card-actions-lecturers"><button
+                          onClick={() => toggleLecturerActive(lecturer.id, lecturer.active)}
+                          type="button"
+                          className="activate-lecturer-button"
+                          aria-label={`Activate ${lecturer.fullName}`}
+                          title={`Activate ${lecturer.fullName}`}
+                        >
+                          Activate
+                        </button> </div>)}
+                      {lecturer.active && (
+                      <div  className="lecturer-card-actions-lecturers">
+                        <Link
+                          to={`/lecturer/edit/${lecturer.id}`}
+                          className="edit-lecturer-button"
+                          aria-label={`Edit ${lecturer.fullName}`}
+                          title={`Edit ${lecturer.fullName}`}
+                        >
+                          <FontAwesomeIcon icon={faPencil} aria-hidden="true" />
+                        </Link>
+                        <button
+                          onClick={() => toggleLecturerActive(lecturer.id, lecturer.active)}
+                          type="button"
+                          className="delete-lecturer-button"
+                          aria-label={`Delete ${lecturer.fullName}`}
+                          title={`Delete ${lecturer.fullName}`}
+                        >
+                          <FontAwesomeIcon icon={faTrash} aria-hidden="true" />
+                        </button>
+                      </div>)}
                     </div>
                   ))}
                 </div>
