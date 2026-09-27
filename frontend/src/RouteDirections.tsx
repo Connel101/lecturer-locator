@@ -19,6 +19,34 @@ function imageUrl(source: string) {
   return URL.createObjectURL(new Blob([source], { type: 'image/svg+xml' }))
 }
 
+function routePreviewBox(root: Element, floor: ViewBox): ViewBox | null {
+  let metadata: { svgPath?: unknown; officePin?: { x?: unknown; y?: unknown } } = {}
+  try {
+    metadata = JSON.parse(root.querySelector('metadata')?.textContent ?? '{}')
+  } catch {
+    // SVGs without route-editor metadata use the full floor-plan view.
+  }
+  const path = typeof metadata.svgPath === 'string'
+    ? metadata.svgPath
+    : root.querySelector('#route-centerline')?.getAttribute('d') ?? ''
+  const number = '-?(?:\\d*\\.)?\\d+(?:e[+-]?\\d+)?'
+  const commands = new RegExp(`[ML]\\s*(${number})[\\s,]+(${number})`, 'gi')
+  const points = [...path.matchAll(commands)].map((match) => [Number(match[1]), Number(match[2])])
+  if (typeof metadata.officePin?.x === 'number' && typeof metadata.officePin.y === 'number') {
+    points.push([metadata.officePin.x, metadata.officePin.y])
+  }
+  if (points.length === 0) return null
+
+  const xs = points.map(([x]) => x)
+  const ys = points.map(([, y]) => y)
+  const padding = Math.max(12, Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) * .15)
+  const left = Math.max(floor[0], Math.min(...xs) - padding)
+  const top = Math.max(floor[1], Math.min(...ys) - padding)
+  const right = Math.min(floor[0] + floor[2], Math.max(...xs) + padding)
+  const bottom = Math.min(floor[1] + floor[3], Math.max(...ys) + padding)
+  return right > left && bottom > top ? [left, top, right - left, bottom - top] : null
+}
+
 async function decodeImage(url: string) {
   const image = new Image()
   image.src = url
@@ -41,7 +69,7 @@ export default function RouteDirections() {
   </main>
 }
 
-function RouteMap({ fileRef, overlay }: { fileRef: string; overlay: string }) {
+export function RouteMap({ fileRef, overlay, compact = false }: { fileRef: string; overlay: string; compact?: boolean }) {
   const [map, setMap] = useState<{ floorUrl: string; overlayUrl: string; ratio: number } | null>(null)
   const [error, setError] = useState('')
   const [attempt, setAttempt] = useState(0)
@@ -51,7 +79,14 @@ function RouteMap({ fileRef, overlay }: { fileRef: string; overlay: string }) {
     const urls: string[] = []
     async function load() {
       try {
-        const routeSvg = readSvg(overlay)
+        const overlaySource = overlay.startsWith('/api/files/routes/')
+          ? await (async () => {
+              const response = await fetch(overlay, { signal: controller.signal })
+              if (!response.ok) throw new Error('The route could not be loaded.')
+              return response.text()
+            })()
+          : overlay
+        const routeSvg = readSvg(overlaySource)
         const response = await fetch(fileRef, { signal: controller.signal })
         if (!response.ok) throw new Error('The floor plan could not be loaded.')
         const floorSvg = readSvg(await response.text())
@@ -59,19 +94,28 @@ function RouteMap({ fileRef, overlay }: { fileRef: string; overlay: string }) {
           throw new Error('The route does not match this floor plan.')
         }
         if (controller.signal.aborted) return
+        // The admin thumbnail frames the route while the public map retains its full view.
+        const previewBox = compact ? routePreviewBox(routeSvg.root, floorSvg.box) : null
+        const box = previewBox ?? floorSvg.box
+        if (previewBox) {
+          const viewBox = box.join(' ')
+          floorSvg.root.setAttribute('viewBox', viewBox)
+          routeSvg.root.setAttribute('viewBox', viewBox)
+          routeSvg.root.setAttribute('width', String(box[2]))
+          routeSvg.root.setAttribute('height', String(box[3]))
+        }
         // Normalise image dimensions to the coordinate ratio, as the editor does.
-        // Only the floor-plan image is normalised; exported overlay bytes stay intact.
-        floorSvg.root.setAttribute('width', String(floorSvg.box[2]))
-        floorSvg.root.setAttribute('height', String(floorSvg.box[3]))
+        floorSvg.root.setAttribute('width', String(box[2]))
+        floorSvg.root.setAttribute('height', String(box[3]))
         const floorUrl = imageUrl(new XMLSerializer().serializeToString(floorSvg.root))
-        const overlayUrl = imageUrl(overlay)
+        const overlayUrl = imageUrl(previewBox ? new XMLSerializer().serializeToString(routeSvg.root) : overlaySource)
         urls.push(floorUrl, overlayUrl)
         try {
           await Promise.all([decodeImage(floorUrl), decodeImage(overlayUrl)])
         } catch {
           throw new Error('The map images could not be displayed. Please try again.')
         }
-        if (!controller.signal.aborted) setMap({ floorUrl, overlayUrl, ratio: floorSvg.box[2] / floorSvg.box[3] })
+        if (!controller.signal.aborted) setMap({ floorUrl, overlayUrl, ratio: box[2] / box[3] })
       } catch (cause) {
         if (!controller.signal.aborted) {
           urls.forEach(URL.revokeObjectURL)
@@ -81,18 +125,18 @@ function RouteMap({ fileRef, overlay }: { fileRef: string; overlay: string }) {
     }
     void load()
     return () => { controller.abort(); urls.forEach(URL.revokeObjectURL) }
-  }, [fileRef, overlay, attempt])
+  }, [fileRef, overlay, compact, attempt])
 
   if (error) return <div>
     <p className="status-message status-message--error" role="alert">{error}</p>
     <button className="primary-button" onClick={() => { setError(''); setAttempt(attempt + 1) }}>Try again</button>
   </div>
   if (!map) return <p className="status-message" role="status">Loading map…</p>
-  return <figure className="route-figure" aria-describedby="route-description">
+  return <figure className={compact ? 'route-figure route-figure--compact' : 'route-figure'} aria-describedby={compact ? undefined : 'route-description'}>
     <div className="route-map" style={{ aspectRatio: map.ratio }} role="img" aria-label="Floor plan with the original route symbols and destination office pin">
       <img src={map.floorUrl} alt="" />
       <img src={map.overlayUrl} alt="" />
     </div>
-    <figcaption>Pinch to zoom in for a closer look.</figcaption>
+    <figcaption>{compact ? 'Route overlay on floor plan.' : 'Pinch to zoom in for a closer look.'}</figcaption>
   </figure>
 }

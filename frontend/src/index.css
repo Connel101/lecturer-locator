@@ -173,6 +173,79 @@ h1 {
   resize: vertical;
 }
 
+.search-field input[type="file"] {
+  padding: .65rem;
+  cursor: pointer;
+}
+
+.search-field input[type="file"]::file-selector-button {
+  margin-right: 1rem;
+  padding: .55rem .85rem;
+  border: 0;
+  border-radius: .55rem;
+  color: #fff;
+  background: #713098;
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.current-upload {
+  display: grid;
+  gap: .5rem;
+  padding: .85rem;
+  border: 1px solid #d9cfde;
+  border-radius: .75rem;
+  background: #faf8fb;
+  font-size: .875rem;
+}
+
+.current-upload img {
+  display: block;
+  max-width: 100%;
+  max-height: 12rem;
+  object-fit: contain;
+  object-position: left center;
+  background: white;
+}
+
+.replacement-picker {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: .75rem;
+  min-height: 3.25rem;
+  padding: .5rem;
+  border: 1px solid #d9cfde;
+  border-radius: .75rem;
+  background: white;
+  color: #4d3a57;
+  cursor: pointer;
+}
+
+.search-field input[type="file"].replacement-picker__input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  opacity: 0;
+  border: 0;
+  clip-path: inset(50%);
+}
+
+.replacement-picker__button {
+  padding: .55rem .85rem;
+  border-radius: .55rem;
+  color: white;
+  background: #713098;
+}
+
+.replacement-picker:focus-within {
+  border-color: #8539b6;
+  box-shadow: 0 0 0 3px rgba(133, 57, 182, .13);
+}
+
 .search-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -196,6 +269,124 @@ h1 {
 .search-results h2 {
   margin: 0 0 1rem;
   font-size: 1.35rem;
+}
+
+.location-management .search-results h2 {
+  margin-bottom: 0;
+}
+
+.location-management .search-results > * + * {
+  margin-top: 1.25rem;
+}
+
+.location-management .search-results > .lecturer-list {
+  gap: 1rem;
+}
+
+.location-section-nav {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: .5rem;
+  padding: .35rem;
+  background: #ece5f0;
+  border-radius: 1rem;
+}
+
+.location-section-nav__link {
+  min-width: 0;
+  min-height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .5rem;
+  padding: .65rem .75rem;
+  border-radius: .75rem;
+  color: #4d3a57;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+}
+
+.location-section-nav__link:hover,
+.location-section-nav__link:focus-visible {
+  color: #3c1053;
+  background: #f7f2fa;
+}
+
+.location-section-nav__link--active,
+.location-section-nav__link--active:hover {
+  color: #3c1053;
+  background: white;
+  box-shadow: 0 2px 8px rgba(60, 16, 83, .1);
+}
+
+.location-section-nav__count {
+  min-width: 1.5rem;
+  padding: .1rem .3rem;
+  border-radius: 1rem;
+  background: #e6d8ee;
+  font-size: .75rem;
+  line-height: 1.2;
+}
+
+.location-management .search-results {
+  margin-top: 2rem;
+}
+
+.location-management .search-results > form {
+  padding: 1.25rem;
+  background: white;
+  border: 1px solid #d9cfde;
+  border-radius: .9rem;
+}
+
+.location-next-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+  color: #622282;
+  font-weight: 750;
+}
+
+@media (min-width: 900px) {
+  .location-management {
+    max-width: 70rem;
+  }
+
+  .location-management .search-results {
+    display: grid;
+    grid-template-columns: minmax(17rem, .8fr) minmax(0, 1.2fr);
+    align-items: start;
+    gap: 1.25rem 1.5rem;
+  }
+
+  .location-management .search-results > * + * {
+    margin-top: 0;
+  }
+
+  .location-management .search-results > h2,
+  .location-management .search-results > .location-section-intro,
+  .location-management .search-results > .location-next-link {
+    grid-column: 1 / -1;
+  }
+
+  .location-management .search-results > form {
+    grid-column: 1;
+  }
+
+  .location-management .search-results > .location-records,
+  .location-management .search-results > .status-message--error {
+    grid-column: 2;
+  }
+}
+
+@media (max-width: 640px) {
+  .location-section-nav__link {
+    flex-direction: column;
+    gap: .25rem;
+    padding: .65rem .25rem;
+    font-size: .8rem;
+  }
 }
 
 .lecturer-list {
@@ -383,6 +574,16 @@ h1 {
 
 .route-figure {
   margin: 1.5rem 0 0;
+}
+
+.route-figure--compact {
+  margin: 0;
+  max-width: 16rem;
+}
+
+.current-upload .route-figure--compact .route-map img {
+  max-width: none;
+  max-height: none;
 }
 
 .route-map {

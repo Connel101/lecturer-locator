@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
+import { Link, useSearchParams } from "react-router-dom";
+import { RouteMap } from "./RouteDirections";
 
 interface FloorPlan {
   id: number;
@@ -56,7 +58,32 @@ async function getJson<T>(url: string): Promise<T> {
   return response.json() as Promise<T>;
 }
 
+async function uploadSvg(file: File, kind: "floor-plans" | "routes"): Promise<string> {
+  if (!file.name.toLowerCase().endsWith(".svg")) throw new Error("Choose an SVG file.");
+  if (file.size > 4 * 1024 * 1024) throw new Error("Choose an SVG file under 4 MB.");
+  const response = await fetch(`/api/files/${kind}`, {
+    method: "POST",
+    headers: { "Content-Type": "image/svg+xml" },
+    body: file,
+  });
+  if (!response.ok) {
+    const data = (await response.json()) as ApiErrorResponse;
+    throw new Error(data.error?.message ?? "The file could not be uploaded.");
+  }
+  const data = (await response.json()) as { fileRef: string };
+  return data.fileRef;
+}
+
 function Buildings() {
+  const [searchParams] = useSearchParams();
+  const requestedSection = searchParams.get("section");
+  const activeSection = requestedSection === "offices" || requestedSection === "routes"
+    ? requestedSection
+    : "floor-plans";
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "auto" });
+  }, [activeSection]);
   const [floorPlans, setFloorPlans] = useState<FloorPlan[]>([]);
   const [offices, setOffices] = useState<Office[]>([]);
   const [routes, setRoutes] = useState<ManagedRoute[]>([]);
@@ -68,7 +95,7 @@ function Buildings() {
   );
   const [editBuildingName, setEditBuildingName] = useState("");
   const [editFloorLevel, setEditFloorLevel] = useState("");
-  const [editFileRef, setEditFileRef] = useState("");
+  const [editFloorPlanFile, setEditFloorPlanFile] = useState<File | null>(null);
   const [floorPlanUpdating, setFloorPlanUpdating] = useState(false);
   const [floorPlanEditError, setFloorPlanEditError] = useState("");
   const [deletingFloorPlanId, setDeletingFloorPlanId] = useState<number | null>(
@@ -78,7 +105,7 @@ function Buildings() {
 
   const [buildingName, setBuildingName] = useState("");
   const [floorLevel, setFloorLevel] = useState("");
-  const [fileRef, setFileRef] = useState("");
+  const [floorPlanFile, setFloorPlanFile] = useState<File | null>(null);
   const [floorPlanSaving, setFloorPlanSaving] = useState(false);
   const [floorPlanError, setFloorPlanError] = useState("");
 
@@ -97,14 +124,14 @@ function Buildings() {
 
   const [routeOfficeId, setRouteOfficeId] = useState("");
   const [routeEntrancePoint, setRouteEntrancePoint] = useState("");
-  const [routeSvgOverlay, setRouteSvgOverlay] = useState("");
+  const [routeFile, setRouteFile] = useState<File | null>(null);
   const [routeSaving, setRouteSaving] = useState(false);
   const [routeError, setRouteError] = useState("");
 
   const [editingRouteId, setEditingRouteId] = useState<number | null>(null);
   const [editRouteOfficeId, setEditRouteOfficeId] = useState("");
   const [editRouteEntrancePoint, setEditRouteEntrancePoint] = useState("");
-  const [editRouteSvgOverlay, setEditRouteSvgOverlay] = useState("");
+  const [editRouteFile, setEditRouteFile] = useState<File | null>(null);
   const [routeUpdating, setRouteUpdating] = useState(false);
   const [routeEditError, setRouteEditError] = useState("");
 
@@ -166,11 +193,14 @@ function Buildings() {
     event: React.FormEvent<HTMLFormElement>,
   ) {
     event.preventDefault();
+    const form = event.currentTarget;
+    if (!floorPlanFile) { setFloorPlanError("Choose a floor plan SVG file."); return; }
 
     setFloorPlanSaving(true);
     setFloorPlanError("");
 
     try {
+      const fileRef = await uploadSvg(floorPlanFile, "floor-plans");
       const response = await fetch("/api/admin/floor-plans", {
         method: "POST",
         headers: {
@@ -204,7 +234,8 @@ function Buildings() {
       setFloorPlans((current) => [...current, created]);
       setBuildingName("");
       setFloorLevel("");
-      setFileRef("");
+      setFloorPlanFile(null);
+      form.reset();
     } catch (err) {
       setFloorPlanError(
         err instanceof Error ? err.message : "Unable to create the floor plan.",
@@ -218,7 +249,7 @@ function Buildings() {
     setEditingFloorPlanId(floorPlan.id);
     setEditBuildingName(floorPlan.buildingName);
     setEditFloorLevel(String(floorPlan.floorLevel));
-    setEditFileRef(floorPlan.fileRef);
+    setEditFloorPlanFile(null);
     setFloorPlanEditError("");
   }
 
@@ -226,7 +257,7 @@ function Buildings() {
     setEditingFloorPlanId(null);
     setEditBuildingName("");
     setEditFloorLevel("");
-    setEditFileRef("");
+    setEditFloorPlanFile(null);
     setFloorPlanEditError("");
   }
 
@@ -243,6 +274,9 @@ function Buildings() {
     setFloorPlanEditError("");
 
     try {
+      const fileRef = editFloorPlanFile
+        ? await uploadSvg(editFloorPlanFile, "floor-plans")
+        : floorPlans.find((plan) => plan.id === editingFloorPlanId)?.fileRef;
       const response = await fetch(
         `/api/admin/floor-plans/${editingFloorPlanId}`,
         {
@@ -253,7 +287,7 @@ function Buildings() {
           body: JSON.stringify({
             buildingName: editBuildingName,
             floorLevel: Number(editFloorLevel),
-            fileRef: editFileRef,
+            fileRef,
           }),
         },
       );
@@ -564,6 +598,7 @@ function Buildings() {
 
   async function handleCreateRoute(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
 
     const selectedOffice = offices.find(
       (office) => office.id === Number(routeOfficeId),
@@ -573,11 +608,13 @@ function Buildings() {
       setRouteError("Select a valid office.");
       return;
     }
+    if (!routeFile) { setRouteError("Choose a route SVG file."); return; }
 
     setRouteSaving(true);
     setRouteError("");
 
     try {
+      const svgOverlay = await uploadSvg(routeFile, "routes");
       const response = await fetch("/api/admin/routes", {
         method: "POST",
         headers: {
@@ -586,7 +623,7 @@ function Buildings() {
         body: JSON.stringify({
           officeId: Number(routeOfficeId),
           entrancePoint: routeEntrancePoint,
-          svgOverlay: routeSvgOverlay.trim() === "" ? null : routeSvgOverlay,
+          svgOverlay,
         }),
       });
 
@@ -627,7 +664,8 @@ function Buildings() {
       setRoutes((current) => [...current, createdRoute]);
       setRouteOfficeId("");
       setRouteEntrancePoint("");
-      setRouteSvgOverlay("");
+      setRouteFile(null);
+      form.reset();
     } catch (err) {
       setRouteError(
         err instanceof Error ? err.message : "Unable to create the route.",
@@ -641,7 +679,7 @@ function Buildings() {
     setEditingRouteId(route.id);
     setEditRouteOfficeId(String(route.officeId));
     setEditRouteEntrancePoint(route.entrancePoint);
-    setEditRouteSvgOverlay(route.svgOverlay ?? "");
+    setEditRouteFile(null);
     setRouteEditError("");
   }
 
@@ -649,7 +687,7 @@ function Buildings() {
     setEditingRouteId(null);
     setEditRouteOfficeId("");
     setEditRouteEntrancePoint("");
-    setEditRouteSvgOverlay("");
+    setEditRouteFile(null);
     setRouteEditError("");
   }
 
@@ -673,6 +711,9 @@ function Buildings() {
     setRouteEditError("");
 
     try {
+      const svgOverlay = editRouteFile
+        ? await uploadSvg(editRouteFile, "routes")
+        : routes.find((route) => route.id === editingRouteId)?.svgOverlay ?? null;
       const response = await fetch(`/api/admin/routes/${editingRouteId}`, {
         method: "PATCH",
         headers: {
@@ -681,8 +722,7 @@ function Buildings() {
         body: JSON.stringify({
           officeId: Number(editRouteOfficeId),
           entrancePoint: editRouteEntrancePoint,
-          svgOverlay:
-            editRouteSvgOverlay.trim() === "" ? null : editRouteSvgOverlay,
+          svgOverlay,
         }),
       });
 
@@ -784,7 +824,7 @@ function Buildings() {
   }
 
   return (
-    <main className="page-shell">
+    <main className="page-shell location-management">
       <p className="eyebrow">Administration</p>
       <h1>Location management</h1>
       <p className="page-intro">
@@ -799,8 +839,27 @@ function Buildings() {
 
       {!loading && !error && (
         <>
-          <section className="search-results">
+          <nav className="location-section-nav" aria-label="Location management sections">
+            {([
+              ["floor-plans", "Floor plans", floorPlans.length],
+              ["offices", "Offices", offices.length],
+              ["routes", "Routes", routes.length],
+            ] as const).map(([section, label, count]) => (
+              <Link
+                key={section}
+                to={`/buildings?section=${section}`}
+                className={`location-section-nav__link${activeSection === section ? " location-section-nav__link--active" : ""}`}
+                aria-current={activeSection === section ? "page" : undefined}
+              >
+                <span>{label}</span>
+                <span className="location-section-nav__count">{count}</span>
+              </Link>
+            ))}
+          </nav>
+
+          {activeSection === "floor-plans" && <section className="search-results">
             <h2>Floor plans</h2>
+            <p className="status-message location-section-intro">Start here: upload the floor plan SVG for a building and floor. You can then add offices and their route overlays below.</p>
             <form className="lecturer-list" onSubmit={handleCreateFloorPlan}>
               <label className="search-field">
                 Building name
@@ -824,15 +883,15 @@ function Buildings() {
               </label>
 
               <label className="search-field">
-                Floor plan file
+                Floor plan SVG
                 <input
-                  type="text"
-                  value={fileRef}
-                  onChange={(event) => setFileRef(event.target.value)}
-                  placeholder="/data/floorplans/groundfloor.svg"
+                  type="file"
+                  accept=".svg,image/svg+xml"
+                  onChange={(event) => setFloorPlanFile(event.target.files?.[0] ?? null)}
                   required
                 />
               </label>
+              <p className="status-message">SVG file, maximum 4 MB.</p>
 
               <button
                 className="primary-button"
@@ -850,9 +909,9 @@ function Buildings() {
             </form>
 
             {floorPlans.length === 0 ? (
-              <p className="status-message">No floor plans have been added.</p>
+              <p className="status-message location-records">No floor plans have been added.</p>
             ) : (
-              <div className="lecturer-list">
+              <div className="lecturer-list location-records">
                 {floorPlans.map((floorPlan) => (
                   <article
                     className="lecturer-card admin-management-card"
@@ -888,16 +947,23 @@ function Buildings() {
                           />
                         </label>
 
+                        <div className="current-upload">
+                          <strong>Current floor plan</strong>
+                          <img src={floorPlan.fileRef} alt={`Current floor plan for ${floorPlan.buildingName}`} />
+                          <a href={floorPlan.fileRef} target="_blank" rel="noreferrer">Open current SVG</a>
+                        </div>
                         <label className="search-field">
-                          Floor plan file
-                          <input
-                            type="text"
-                            value={editFileRef}
-                            onChange={(event) =>
-                              setEditFileRef(event.target.value)
-                            }
-                            required
-                          />
+                          Replace floor plan SVG (optional)
+                          <span className="replacement-picker">
+                            <input
+                              className="replacement-picker__input"
+                              type="file"
+                              accept=".svg,image/svg+xml"
+                              onChange={(event) => setEditFloorPlanFile(event.target.files?.[0] ?? null)}
+                            />
+                            <span className="replacement-picker__button">Choose replacement</span>
+                            <span>{editFloorPlanFile?.name ?? "Keep current file"}</span>
+                          </span>
                         </label>
 
                         <button
@@ -927,7 +993,7 @@ function Buildings() {
                         <div className="admin-card-details">
                           <strong>{floorPlan.buildingName}</strong>
                           <span>{formatFloorLevel(floorPlan.floorLevel)}</span>
-                          <span>{floorPlan.fileRef}</span>
+                          <a href={floorPlan.fileRef} target="_blank" rel="noreferrer">View floor plan</a>
                         </div>
 
                         <div className="admin-card-actions">
@@ -970,9 +1036,10 @@ function Buildings() {
                 {floorPlanDeleteError}
               </p>
             )}
-          </section>
+            <Link className="location-next-link" to="/buildings?section=offices">Next: Offices →</Link>
+          </section>}
 
-          <section className="search-results">
+          {activeSection === "offices" && <section className="search-results">
             <h2>Offices</h2>
 
             <form className="lecturer-list" onSubmit={handleCreateOffice}>
@@ -1021,9 +1088,9 @@ function Buildings() {
             </form>
 
             {offices.length === 0 ? (
-              <p className="status-message">No offices have been added.</p>
+              <p className="status-message location-records">No offices have been added.</p>
             ) : (
-              <div className="lecturer-list">
+              <div className="lecturer-list location-records">
                 {offices.map((office) => (
                   <article
                     className="lecturer-card admin-management-card"
@@ -1123,10 +1190,12 @@ function Buildings() {
                 {officeDeleteError}
               </p>
             )}
-          </section>
+            <Link className="location-next-link" to="/buildings?section=routes">Next: Routes →</Link>
+          </section>}
 
-          <section className="search-results">
+          {activeSection === "routes" && <section className="search-results">
             <h2>Predefined routes</h2>
+            <p className="status-message location-section-intro">Add an office first, then upload its SVG route overlay. The overlay must use the same viewBox as its floor plan.</p>
 
             <form className="lecturer-list" onSubmit={handleCreateRoute}>
               <label className="search-field">
@@ -1166,14 +1235,15 @@ function Buildings() {
               </label>
 
               <label className="search-field">
-                SVG route overlay
-                <textarea
-                  value={routeSvgOverlay}
-                  onChange={(event) => setRouteSvgOverlay(event.target.value)}
-                  placeholder='<svg xmlns="http://www.w3.org/2000/svg">...</svg>'
-                  rows={6}
+                Route overlay SVG
+                <input
+                  type="file"
+                  accept=".svg,image/svg+xml"
+                  onChange={(event) => setRouteFile(event.target.files?.[0] ?? null)}
+                  required
                 />
               </label>
+              <p className="status-message">Export the route overlay as an SVG from the route editor. Maximum 4 MB.</p>
 
               <button
                 className="primary-button"
@@ -1191,11 +1261,11 @@ function Buildings() {
             </form>
 
             {routes.length === 0 ? (
-              <p className="status-message">
+              <p className="status-message location-records">
                 No predefined routes have been added.
               </p>
             ) : (
-              <div className="lecturer-list">
+              <div className="lecturer-list location-records">
                 {routes.map((route) => (
                   <article
                     className="lecturer-card admin-management-card"
@@ -1246,15 +1316,29 @@ function Buildings() {
                           />
                         </label>
 
+                        <div className="current-upload">
+                          <strong>Current route overlay</strong>
+                          {route.svgOverlay && <RouteMap
+                            fileRef={floorPlans.find((plan) => plan.id === route.floorPlanId)?.fileRef ?? ""}
+                            overlay={route.svgOverlay}
+                            compact
+                          />}
+                          {route.svgOverlay?.startsWith('/api/files/routes/')
+                            ? <a href={route.svgOverlay} target="_blank" rel="noreferrer">Open current SVG</a>
+                            : <span>{route.svgOverlay ? "Saved with this route" : "No overlay uploaded"}</span>}
+                        </div>
                         <label className="search-field">
-                          SVG route overlay
-                          <textarea
-                            value={editRouteSvgOverlay}
-                            onChange={(event) =>
-                              setEditRouteSvgOverlay(event.target.value)
-                            }
-                            rows={6}
-                          />
+                          Replace route overlay SVG (optional)
+                          <span className="replacement-picker">
+                            <input
+                              className="replacement-picker__input"
+                              type="file"
+                              accept=".svg,image/svg+xml"
+                              onChange={(event) => setEditRouteFile(event.target.files?.[0] ?? null)}
+                            />
+                            <span className="replacement-picker__button">Choose replacement</span>
+                            <span>{editRouteFile?.name ?? "Keep current file"}</span>
+                          </span>
                         </label>
 
                         <button
@@ -1332,7 +1416,7 @@ function Buildings() {
                 {routeDeleteError}
               </p>
             )}
-          </section>
+          </section>}
         </>
       )}
     </main>
