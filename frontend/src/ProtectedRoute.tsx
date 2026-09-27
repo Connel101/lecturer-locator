@@ -16,7 +16,14 @@ function ProtectedRoute() {
   });
 
   if (isPending) {
-    return <p>Loading...</p>;
+    return (
+      <main className="session-loader" role="status" aria-live="polite">
+        <div className="session-loader__content">
+          <span className="session-loader__wordmark" aria-hidden="true">NWU</span>
+          <span className="session-loader__label">Loading your campus…</span>
+        </div>
+      </main>
+    );
   }
 
   if (error) {
