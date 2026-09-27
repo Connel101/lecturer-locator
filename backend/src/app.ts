@@ -4,6 +4,7 @@ import { toNodeHandler } from "better-auth/node";
 import { auth } from "./lib/auth.ts";
 import { lecturerRouter } from "./routes/lecturers.ts";
 import { adminRouter } from "./routes/admin.ts";
+import { filesRouter } from "./routes/files.ts";
 
 
 export const app: Express = express();
@@ -21,6 +22,7 @@ app.use(
 app.all('/api/auth/{*any}', toNodeHandler(auth));
 app.use(express.json());
 app.use('/api/admin', adminRouter);
+app.use('/api/files', filesRouter);
 app.use('/api/lecturers', lecturerRouter);
 
 export default app
