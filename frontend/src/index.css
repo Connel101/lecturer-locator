@@ -17,6 +17,47 @@ body {
   min-height: 100vh;
 }
 
+.session-loader {
+  min-height: calc(100vh - 3.5rem);
+  min-height: calc(100dvh - 3.5rem);
+  display: grid;
+  place-items: center;
+  padding: 2rem 1.5rem;
+}
+
+.session-loader__content {
+  display: grid;
+  justify-items: center;
+  gap: .5rem;
+}
+
+.session-loader__wordmark {
+  color: #3c1053;
+  background: linear-gradient(100deg, #3c1053 35%, #a562c4 50%, #3c1053 65%);
+  background-size: 250% 100%;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: clamp(3rem, 12vw, 4.5rem);
+  font-weight: 800;
+  letter-spacing: .08em;
+  line-height: 1;
+  animation: session-loader-highlight 2.4s ease-in-out infinite;
+}
+
+.session-loader__label {
+  color: #716777;
+  font-size: .875rem;
+}
+
+@keyframes session-loader-highlight {
+  from { background-position: 100% 0; }
+  to { background-position: 0 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .session-loader__wordmark { animation: none; }
+}
+
 button,
 input,
 select,
@@ -489,6 +530,12 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
 }
 
 @media (max-width: 640px) {
+  .session-loader {
+    min-height: calc(100vh - 3.75rem);
+    min-height: calc(100dvh - 3.75rem);
+    padding-bottom: calc(5.25rem + env(safe-area-inset-bottom));
+  }
+
   .top-nav {
     height: 3.75rem;
     padding: 0 1rem;
