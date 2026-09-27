@@ -435,6 +435,26 @@ Deleting a route does not delete its office or floor plan.
 
 A successful deletion returns `204 No Content`.
 
+
+### Upload SVG files
+
+The admin UI sends the selected SVG file as the request body to
+`POST /api/files/floor-plans` or `POST /api/files/routes`, with
+`Content-Type: image/svg+xml`. Uploads are limited to 4 MB. A successful upload
+returns `{ "fileRef": "/api/files/<kind>/<id>.svg" }`. Save this reference in
+`floorPlan.fileRef` or `route.svgOverlay` through the existing JSON endpoints.
+`GET /api/files/<kind>/<id>.svg` serves the SVG to the public route viewer.
+Existing seeded `/data/floorplans/` references and inline route SVGs remain valid.
+
+In development, files are saved alongside the existing map assets in
+`backend/src/data/floorplans/` with an `uploaded-floor-plan-` or
+`uploaded-route-` prefix (ignored by Git). Earlier local uploads under
+`backend/data/uploads/` remain readable.
+Production uses the Neon Object Storage S3 endpoint and bucket configured through
+`STORAGE_S3_ENDPOINT`, `STORAGE_S3_BUCKET`, `STORAGE_S3_REGION`,
+`STORAGE_S3_ACCESS_KEY_ID`, and `STORAGE_S3_SECRET_ACCESS_KEY`. Production uploads
+fail if any of these are missing. 
+
 ## Administrator API errors
 
 Invalid numeric IDs return `400 Bad Request`.
