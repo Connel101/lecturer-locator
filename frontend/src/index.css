@@ -9,7 +9,7 @@
 
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; min-height: 100vh; }
-button, input { font: inherit; }
+button, input, select { font: inherit; }
 
 .top-nav {
   position: relative;
@@ -58,6 +58,8 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
 .search-field { display: grid; gap: .5rem; color: #4d3a57; font-size: .875rem; font-weight: 700; }
 .search-field input { width: 100%; padding: 1rem 1.1rem; color: #261632; background: #fff; border: 1px solid #d9cfde; border-radius: .9rem; outline: none; box-shadow: 0 8px 24px rgba(60, 16, 83, .05); }
 .search-field input:focus { border-color: #8539b6; box-shadow: 0 0 0 3px rgba(133, 57, 182, .13); }
+.search-field select { width: 100%; min-height: 3.35rem; padding: .9rem 3rem .9rem 1.1rem; color: #261632; background-color: #fff; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16' fill='none'%3E%3Cpath d='m4 6 4 4 4-4' stroke='%233c1053' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1.1rem center; border: 1px solid #d9cfde; border-radius: .9rem; outline: none; box-shadow: 0 8px 24px rgba(60, 16, 83, .05); appearance: none; cursor: pointer; }
+.search-field select:focus-visible { border-color: #8539b6; box-shadow: 0 0 0 3px rgba(133, 57, 182, .13); }
 .search-form {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
@@ -257,6 +259,7 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
 .feature-page { text-align: center; display: flex; flex-direction: column; align-items: center; }
 .feature-icon { width: 11rem; height: 11rem; margin-bottom: 2rem; display: grid; place-items: center; color: #8539b6; font-size: 4.5rem; background: white; border: 2px solid #dccce5; border-radius: 2rem; box-shadow: 0 18px 45px rgba(60, 16, 83, .1); }
 .primary-button { padding: .9rem 1.4rem; color: white; background: #3c1053; border: 0; border-radius: .8rem; font-weight: 750; cursor: pointer; }
+.add-lecturer-button { display: flex; width: fit-content; margin-bottom: 1rem; }
 .mobile-nav { display: none; }
 
 @media (max-width: 640px) {

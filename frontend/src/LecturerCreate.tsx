@@ -6,6 +6,9 @@ function LecturerCreate() {
   const [title, setTitle] = useState('');
   const [department, setDepartment] = useState('');
   const [researchArea, setResearchArea] = useState('');
+  const [email, setEmail] = useState('');
+  const [officePhone, setOfficePhone] = useState('');
+  
   const [buildingName, setBuildingName] = useState('');
   const [floorLevel, setFloorLevel] = useState('0');
   const [roomNumber, setRoomNumber] = useState('');
@@ -18,7 +21,7 @@ function LecturerCreate() {
     setIsSaving(true);
     setSaveMessage('');
     setSaveError('');
-
+    //fullName, title, department, email, officePhone, researchArea 
     try {
       const response = await fetch('/api/admin/lecturers', {
         method: 'POST',
@@ -27,10 +30,9 @@ function LecturerCreate() {
           fullName,
           title: title || null,
           department: department || null,
-          researchArea: researchArea || null,
-          buildingName,
-          floorLevel: Number(floorLevel),
-          roomNumber,
+          email: email || null,
+          officePhone: officePhone||null,
+          researchArea: researchArea || null
         }),
       });
 
@@ -76,21 +78,18 @@ function LecturerCreate() {
               <input value={department} onChange={(event) => setDepartment(event.target.value)} />
             </label>
             <label className="search-field">
+              <span>Email</span>
+              <input value={email} onChange={(event) => setEmail(event.target.value)} />
+            </label>
+            <label className="search-field">
+              <span>Office Phone Number</span>
+              <input value={officePhone} onChange={(event) => setOfficePhone(event.target.value)} />
+            </label>
+            <label className="search-field">
               <span>Research area</span>
               <input value={researchArea} onChange={(event) => setResearchArea(event.target.value)} />
             </label>
-            <label className="search-field">
-              <span>Building</span>
-              <input value={buildingName} onChange={(event) => setBuildingName(event.target.value)} required />
-            </label>
-            <label className="search-field">
-              <span>Floor level</span>
-              <input type="number" value={floorLevel} onChange={(event) => setFloorLevel(event.target.value)} required />
-            </label>
-            <label className="search-field">
-              <span>Office</span>
-              <input value={roomNumber} onChange={(event) => setRoomNumber(event.target.value)} required />
-            </label>
+            
           </div>
           <button className="primary-button mt-4" type="submit" disabled={isSaving}>
             {isSaving ? 'Adding...' : 'Add lecturer'}
