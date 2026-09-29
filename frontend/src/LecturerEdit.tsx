@@ -43,6 +43,7 @@ function LecturerEdit() {
   const [saveMessageOffice, setSaveMessageOffice] = useState('');
   const [saveErrorOffice, setSaveErrorOffice] = useState('');
   const [editOffice, setEditOffice] =useState(true);
+  const [isAddModuleModalOpen, setIsAddModuleModalOpen] = useState(false);
   const selectedOffice = offices.find((office) => office.id === officeId);
 
   useEffect(() => {
@@ -109,39 +110,6 @@ function LecturerEdit() {
     try {
       const response = await fetch(`/api/admin/lecturers/${lecturer.id}/office`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          officeId: officeId,
-          
-        }),
-      });
-
-
-      if (!response.ok) {
-        throw new Error('Save request failed');
-      }
-      if (selectedOffice) {
-        setBuilding(selectedOffice.buildingName);
-        setFloorLevel(selectedOffice.floorLevel);
-        setRoomNumber(selectedOffice.roomNumber);
-      }
-
-      setSaveMessageOffice('Lecturer details saved successfully.');
-      setEditOffice(false);
-    } catch {
-      setSaveErrorOffice('The lecturer details could not be saved. Please try again.');
-    } finally {
-      setIsSavingOffice(false);
-    }
-  }
-
-  async function removeModule(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    
-
-    try {
-      const response = await fetch(`/api/admin/lecturers/${lecturer.id}/modules/:moduleId`, {
-        method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           officeId: officeId,
@@ -331,8 +299,7 @@ function LecturerEdit() {
                     <button
                       aria-label="Decorative cross"
                       className="inline-flex h-5 w-5 cursor-default items-center justify-center rounded-full text-[#5a1b70]"
-                      type="button" 
-                      onClick={removeModule}
+                      type="button"
                     >
                       ×
                     </button>
@@ -358,15 +325,44 @@ function LecturerEdit() {
               <button
                 className="primary-button"
                 type="button"
-                onClick={(event) => { event.preventDefault(); setEditOffice(true); }}
+                onClick={() => setIsAddModuleModalOpen(true)}
               >
                 Add module
               </button>
         
           </div>
           </section>
-      
-      
+
+      {isAddModuleModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#261632]/50 p-4">
+          <section
+            aria-labelledby="add-module-title"
+            aria-modal="true"
+            className="w-full max-w-md rounded-2xl border border-[#ece7ed] bg-white p-6 shadow-xl"
+            role="dialog"
+          >
+            <h2 className="text-xl font-bold text-[#4b145f]" id="add-module-title">
+              Add module
+            </h2>
+            <label className="search-field mt-4">
+              <span>Module code</span>
+              <input type="text" placeholder="Enter module code" />
+            </label>
+            <div className="mt-6 flex justify-end gap-3">
+              <button
+                className="rounded-lg border border-[#d9cfde] px-4 py-2 font-semibold text-[#4d3a57] hover:bg-[#f7f4f9]"
+                onClick={() => setIsAddModuleModalOpen(false)}
+                type="button"
+              >
+                Cancel
+              </button>
+              <button className="primary-button" type="button">
+                Add
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
 
     </main>
       );
