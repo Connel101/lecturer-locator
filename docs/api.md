@@ -84,6 +84,7 @@ Returns a lecturer using their permanent ID.
   "officePhone": "+27 18 000 0001",
   "modules": [
     {
+      "id": 1,
       "code": "CMPG111",
       "name": "Introduction to Computing"
     }
@@ -118,7 +119,8 @@ unavailable. Contact fields are returned only by the profile endpoint, not by
 lecturer search. `officeHours` is ordered by day and start time, uses
 ISO weekday numbers (`1` for Monday through `7` for Sunday), and is an empty
 array when no ranges are available. `modules` is an empty array when no modules
-are available.
+are available. Each module includes its numeric `id` and `code`; `name` is
+omitted when unavailable.
 
 If a lecturer does not have an assigned office, `office` is `null`.
 
