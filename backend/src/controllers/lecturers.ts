@@ -137,6 +137,7 @@ export async function getLecturerProfile(
     const [lecturerModuleRows, officeHourRows] = await Promise.all([
       db
         .select({
+          id: modules.id,
           code: modules.code,
           name: modules.name,
         })
@@ -168,6 +169,7 @@ export async function getLecturerProfile(
         officePhone: profile.officePhone,
       }),
       modules: lecturerModuleRows.map((module) => ({
+        id: module.id,
         code: module.code,
         ...(module.name !== null && { name: module.name }),
       })),
