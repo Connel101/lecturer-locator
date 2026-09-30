@@ -84,6 +84,7 @@ Returns a lecturer using their permanent ID.
   "officePhone": "+27 18 000 0001",
   "modules": [
     {
+      "id": 1,
       "code": "CMPG111",
       "name": "Introduction to Computing"
     }
@@ -118,7 +119,8 @@ unavailable. Contact fields are returned only by the profile endpoint, not by
 lecturer search. `officeHours` is ordered by day and start time, uses
 ISO weekday numbers (`1` for Monday through `7` for Sunday), and is an empty
 array when no ranges are available. `modules` is an empty array when no modules
-are available.
+are available. Each module includes its numeric `id` and `code`; `name` is
+omitted when unavailable.
 
 If a lecturer does not have an assigned office, `office` is `null`.
 
@@ -434,6 +436,26 @@ DELETE /api/admin/routes/:id
 Deleting a route does not delete its office or floor plan.
 
 A successful deletion returns `204 No Content`.
+
+
+### Upload SVG files
+
+The admin UI sends the selected SVG file as the request body to
+`POST /api/files/floor-plans` or `POST /api/files/routes`, with
+`Content-Type: image/svg+xml`. Uploads are limited to 4 MB. A successful upload
+returns `{ "fileRef": "/api/files/<kind>/<id>.svg" }`. Save this reference in
+`floorPlan.fileRef` or `route.svgOverlay` through the existing JSON endpoints.
+`GET /api/files/<kind>/<id>.svg` serves the SVG to the public route viewer.
+Existing seeded `/data/floorplans/` references and inline route SVGs remain valid.
+
+In development, files are saved alongside the existing map assets in
+`backend/src/data/floorplans/` with an `uploaded-floor-plan-` or
+`uploaded-route-` prefix (ignored by Git). Earlier local uploads under
+`backend/data/uploads/` remain readable.
+Production uses the Neon Object Storage S3 endpoint and bucket configured through
+`STORAGE_S3_ENDPOINT`, `STORAGE_S3_BUCKET`, `STORAGE_S3_REGION`,
+`STORAGE_S3_ACCESS_KEY_ID`, and `STORAGE_S3_SECRET_ACCESS_KEY`. Production uploads
+fail if any of these are missing. 
 
 ## Administrator API errors
 
