@@ -8,6 +8,7 @@ import {
 import { useEffect,useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useLecturerProfile } from './lecturer-profile';
+import { normalizeModuleId } from "vite/module-runner";
 
 interface Office {
   id: number;
@@ -45,7 +46,7 @@ function LecturerEdit() {
   const [editOffice, setEditOffice] =useState(true);
   const [isAddModuleModalOpen, setIsAddModuleModalOpen] = useState(false);
   const selectedOffice = offices.find((office) => office.id === officeId);
-
+  const [modules, setModules] = useState(lecturer.modules);
   useEffect(() => {
   async function loadOffices() {
     try {
@@ -65,6 +66,8 @@ function LecturerEdit() {
 
   loadOffices();
 }, []);
+
+  
 
   async function handleSaveDetails(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -101,6 +104,10 @@ function LecturerEdit() {
     }
   }
 
+   async function AddModule(){
+
+  }
+
   async function handleSaveOffice(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setIsSavingOffice(true);
@@ -135,6 +142,27 @@ function LecturerEdit() {
       setIsSavingOffice(false);
     }
   }
+
+  async function removeModule(moduleId: number) {
+  
+    
+
+    
+      const response = await fetch(`/api/admin/lecturers/${lecturer.id}/modules/${moduleId}`, {
+        method: 'DELETE',
+        
+      });
+
+      if (!response.ok) return;
+
+      setModules((current) =>
+        current.filter((module) => module.id !== moduleId),
+      );
+     
+
+     
+  }
+
 
   return (
 
@@ -293,13 +321,14 @@ function LecturerEdit() {
               <span>Modules</span>
               <div className="mt-2 flex flex-wrap  gap-1.5">
              
-               {lecturer.modules.map((module) => (
+               {modules.map((module) => (
                   <span className="inline-flex items-center gap-1 rounded-full border border-[#e2d2e7] bg-[#f7f0f9] px-2 py-0.5 font-semibold text-[#5a1b70]" key={module.code}>
                     {module.code}
                     <button
                       aria-label="Decorative cross"
-                      className="inline-flex h-5 w-5 cursor-default items-center justify-center rounded-full text-[#5a1b70]"
+                      className="inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-[#5a1b70]"
                       type="button"
+                      onClick={() => void removeModule(module.id)}
                     >
                       ×
                     </button>
@@ -356,7 +385,7 @@ function LecturerEdit() {
               >
                 Cancel
               </button>
-              <button className="primary-button" type="button">
+              <button className="primary-button" type="button" onClick={() => AddModule()}>
                 Add
               </button>
             </div>

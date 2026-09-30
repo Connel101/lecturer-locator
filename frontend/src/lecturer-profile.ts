@@ -9,7 +9,7 @@ export interface LecturerProfile {
   department: string | null
   email?: string
   officePhone?: string
-  modules: { id:Number,code: string; name?: string }[]
+  modules: { id:number,code: string; name?: string }[]
   researchArea?: string
   officeHours: { dayOfWeek: number; startTime: string; endTime: string }[]
   office: { buildingName: string | null; floorLevel: number | null; roomNumber: string } | null
