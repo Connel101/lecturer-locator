@@ -20,11 +20,18 @@ interface Office {
   updatedAt: string;
 }
 
+interface Module {
+  id: number;
+  code: string;
+  name: string;
+}
+
 function LecturerEdit() {
   const [offices, setOffices] = useState<Office[]>([]);
-  const [officeId, setOfficeId] = useState<number | null>(null);
+  
   //fullName, title, department, email, officePhone, researchArea
   const lecturer = useLecturerProfile();
+  const [officeId, setOfficeId] = useState(lecturer.office?.id);
   const [failedPhotoUrl, setFailedPhotoUrl] = useState<string | null>(null);
   const [fullName, setFullName] = useState(lecturer.fullName);
   const [title, setTitle] = useState(lecturer.title ?? '');
@@ -47,6 +54,29 @@ function LecturerEdit() {
   const [isAddModuleModalOpen, setIsAddModuleModalOpen] = useState(false);
   const selectedOffice = offices.find((office) => office.id === officeId);
   const [modules, setModules] = useState(lecturer.modules);
+  const[moduleList, setModuleList] = useState<Module[]>([]);
+  const [moduleId,setModuleId] = useState<number | null>(null);
+
+  useEffect(() => {
+  async function loadModules() {
+    try {
+      const response = await fetch("/api/admin/modules");
+
+      if (!response.ok) {
+        throw new Error("Failed to load modules");
+      }
+
+      const data: { modules: Module[] } = await response.json();
+
+      setModuleList(data.modules);
+    } catch (error) {
+      console.error("Failed to load Modules:", error);
+    }
+  }
+
+  loadModules();
+}, []);
+  
   useEffect(() => {
   async function loadOffices() {
     try {
@@ -105,7 +135,25 @@ function LecturerEdit() {
   }
 
    async function AddModule(){
+      if (moduleId === null) return;
+      const response = await fetch(`/api/admin/lecturers/${lecturer.id}/modules`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          moduleId: moduleId,
+          
+        }),
+      });
 
+      if (!response.ok) {
+        console.error("Could not add module");
+        return;
+      }
+
+      const data: { modules: typeof modules } = await response.json();
+      setModules(data.modules);
+      setModuleId(null);
+      setIsAddModuleModalOpen(false);
   }
 
   async function handleSaveOffice(event: FormEvent<HTMLFormElement>) {
@@ -375,8 +423,24 @@ function LecturerEdit() {
             </h2>
             <label className="search-field mt-4">
               <span>Module code</span>
-              <input type="text" placeholder="Enter module code" />
-            </label>
+              
+              <select
+                  value={moduleId ?? ""}
+                  onChange={(e) => {
+                  setModuleId(e.target.value ? Number(e.target.value) : null);
+                  }}
+                >
+                <option value="">Select an office</option>
+
+                {moduleList.map((module) => (
+                <option key={module.id} value={module.id}>
+                {module.code}
+                </option>
+                 ))}
+                </select>
+                
+            
+              </label>
             <div className="mt-6 flex justify-end gap-3">
               <button
                 className="rounded-lg border border-[#d9cfde] px-4 py-2 font-semibold text-[#4d3a57] hover:bg-[#f7f4f9]"

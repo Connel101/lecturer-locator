@@ -112,6 +112,7 @@ export async function getLecturerProfile(
         department: lecturers.department,
         email: lecturers.email,
         officePhone: lecturers.officePhone,
+        officeId: lecturers.officeId,
         researchArea: lecturers.researchArea,
         buildingName: floorPlans.buildingName,
         floorLevel: floorPlans.floorLevel,
@@ -185,6 +186,7 @@ export async function getLecturerProfile(
         profile.roomNumber === null
           ? null
           : {
+              id: profile.officeId,
               buildingName: profile.buildingName,
               floorLevel: profile.floorLevel,
               roomNumber: profile.roomNumber,

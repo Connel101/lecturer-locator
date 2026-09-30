@@ -468,3 +468,29 @@ export async function searchLecturers(
     });
   }
 }
+
+export async function listModules(
+  _req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const rows = await db
+      .select({
+        id: modules.id,
+        code: modules.code,
+        name: modules.name,
+      })
+      .from(modules)
+      .orderBy(asc(modules.code));
+
+    res.status(200).json({ modules: rows });
+  } catch (error) {
+    console.error("Failed to list modules:", error);
+    res.status(500).json({
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "Modules could not be loaded.",
+      },
+    });
+  }
+}

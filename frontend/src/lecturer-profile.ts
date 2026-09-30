@@ -12,7 +12,7 @@ export interface LecturerProfile {
   modules: { id:number,code: string; name?: string }[]
   researchArea?: string
   officeHours: { dayOfWeek: number; startTime: string; endTime: string }[]
-  office: { buildingName: string | null; floorLevel: number | null; roomNumber: string } | null
+  office: { id:number | null,buildingName: string | null; floorLevel: number | null; roomNumber: string } | null
   route: {
     floorPlan: { buildingName: string; floorLevel: number; fileRef: string }
     entrancePoint: string
