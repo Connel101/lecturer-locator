@@ -26,38 +26,6 @@ function isValidId(id: unknown): id is string {
   return typeof id === "string" && UUID_PATTERN.test(id);
 }
 
-/**
- * GET /api/admin/lecturers
- * Lists every lecturer, including inactive ones.
- */
-export async function listLecturers(
-  _req: Request,
-  res: Response,
-): Promise<void> {
-  try {
-    const rows = await db
-      .select({
-        id: lecturers.id,
-        fullName: lecturers.fullName,
-        title: lecturers.title,
-        department: lecturers.department,
-        email: lecturers.email,
-        officePhone: lecturers.officePhone,
-        researchArea: lecturers.researchArea,
-        active: lecturers.active,
-        officeId: lecturers.officeId,
-      })
-      .from(lecturers)
-      .orderBy(lecturers.fullName);
-
-    res.status(200).json({ lecturers: rows });
-  } catch (error) {
-    console.error("Failed to list lecturers:", error);
-    res.status(500).json({
-      error: { code: "INTERNAL_ERROR", message: "Lecturers could not be loaded." },
-    });
-  }
-}
 
 /**
  * POST /api/admin/lecturers

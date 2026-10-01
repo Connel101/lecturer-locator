@@ -9,9 +9,7 @@ function LecturerCreate() {
   const [email, setEmail] = useState('');
   const [officePhone, setOfficePhone] = useState('');
   
-  const [buildingName, setBuildingName] = useState('');
-  const [floorLevel, setFloorLevel] = useState('0');
-  const [roomNumber, setRoomNumber] = useState('');
+
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
   const [saveError, setSaveError] = useState('');
@@ -45,9 +43,9 @@ function LecturerCreate() {
       setTitle('');
       setDepartment('');
       setResearchArea('');
-      setBuildingName('');
-      setFloorLevel('0');
-      setRoomNumber('');
+      setEmail('');
+      setOfficePhone('');
+      
     } catch {
       setSaveError('The lecturer could not be added. Please check the details and try again.');
     } finally {

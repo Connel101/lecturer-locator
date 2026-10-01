@@ -18,7 +18,6 @@ import {
 import {
   addLecturerModule,
   createLecturer,
-  listLecturers,
   removeLecturerModule,
   setLecturerActive,
   setLecturerOffice,
@@ -39,7 +38,6 @@ adminRouter.delete("/floor-plans/:id", deleteFloorPlan);
 
 // Lecturer management
 adminRouter.get("/lecturers", searchLecturers);
-adminRouter.get("/lecturers", listLecturers);
 
 adminRouter.post("/lecturers", createLecturer);
 adminRouter.patch("/lecturers/:id", updateLecturer);

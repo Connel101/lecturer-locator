@@ -1,14 +1,8 @@
-import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import {
-  faBuilding,
-  faClock,
-  faDiamondTurnRight,
 
-} from "@fortawesome/free-solid-svg-icons";
 import { useEffect,useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useLecturerProfile } from './lecturer-profile';
-import { normalizeModuleId } from "vite/module-runner";
+
 
 interface Office {
   id: number;
@@ -32,7 +26,7 @@ function LecturerEdit() {
   //fullName, title, department, email, officePhone, researchArea
   const lecturer = useLecturerProfile();
   const [officeId, setOfficeId] = useState(lecturer.office?.id);
-  const [failedPhotoUrl, setFailedPhotoUrl] = useState<string | null>(null);
+  
   const [fullName, setFullName] = useState(lecturer.fullName);
   const [title, setTitle] = useState(lecturer.title ?? '');
   const [department, setDepartment] = useState(lecturer.department ?? '');
