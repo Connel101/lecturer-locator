@@ -525,6 +525,12 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
   cursor: pointer;
 }
 
+.add-lecturer-button {
+  display: flex;
+  width: fit-content;
+  margin-bottom: 1rem;
+}
+
 .mobile-nav {
   display: none;
 }
@@ -754,3 +760,147 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
   gap: 0.5rem;
   margin-top: 0;
 }
+
+.lecturer-card-lecturers strong {
+  font-size: 1.05rem;
+}
+
+
+.lecturer-card-lecturers span {
+  color: #716777;
+  font-size: 0.9rem;
+}
+
+
+.lecturer-card-lecturers {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  color: #261632;
+  background: white;
+  border: 1px solid #d9cfde;
+  border-radius: 0.9rem;
+  box-shadow: 0 8px 24px rgba(60, 16, 83, 0.05);
+  text-decoration: none;
+}
+
+.lecturer-card-details-lecturers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.lecturer-name-row-lecturers {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.lecturer-status-lecturers {
+  width: fit-content;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.lecturer-status-lecturers--active {
+  color: #17633a;
+  background: #e5f5eb;
+}
+
+.lecturer-status-lecturers--inactive {
+  color: #8a3d24;
+  background: #fbe9df;
+}
+
+.lecturer-card-lecturers .edit-lecturer-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-left: auto;
+  flex-shrink: 0;
+  color: #4b145f;
+  border: 1px solid #d9cfde;
+  border-radius: 0.45rem;
+  background: #fff;
+  text-decoration: none;
+}
+
+.lecturer-card-actions-lecturers {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.lecturer-card-lecturers .delete-lecturer-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  color: #a13b36;
+  border: 1px solid #e5c2bf;
+  border-radius: 0.45rem;
+  background: #fff;
+  cursor: pointer;
+}
+
+.lecturer-card-lecturers .activate-lecturer-button {
+  min-width: 5.5rem;
+  padding: 0.6rem 0.85rem;
+  color: #17633a;
+  border: 1px solid #9ac9aa;
+  border-radius: 0.45rem;
+  background: #e5f5eb;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.lecturer-card-lecturers .activate-lecturer-button:hover,
+.lecturer-card-lecturers .activate-lecturer-button:focus-visible {
+  color: #fff;
+  background: #267a49;
+  border-color: #267a49;
+}
+
+.lecturer-card-lecturers .edit-lecturer-button:hover,
+.lecturer-card-lecturers .edit-lecturer-button:focus-visible {
+  color: #fff;
+  background: #4b145f;
+  border-color: #4b145f;
+}
+
+.lecturer-card-lecturers .delete-lecturer-button:hover,
+.lecturer-card-lecturers .delete-lecturer-button:focus-visible {
+  color: #fff;
+  background: #a13b36;
+  border-color: #a13b36;
+}
+
+
+
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+
+ 
+
+

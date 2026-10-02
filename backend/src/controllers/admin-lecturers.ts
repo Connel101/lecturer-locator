@@ -1,7 +1,8 @@
-import { and, eq } from "drizzle-orm";
+import { and, asc, eq, ilike,} from "drizzle-orm";
 import type { Request, Response } from "express";
 
 import {
+  floorPlans,
   lecturerModules,
   lecturers,
   modules,
@@ -25,38 +26,6 @@ function isValidId(id: unknown): id is string {
   return typeof id === "string" && UUID_PATTERN.test(id);
 }
 
-/**
- * GET /api/admin/lecturers
- * Lists every lecturer, including inactive ones.
- */
-export async function listLecturers(
-  _req: Request,
-  res: Response,
-): Promise<void> {
-  try {
-    const rows = await db
-      .select({
-        id: lecturers.id,
-        fullName: lecturers.fullName,
-        title: lecturers.title,
-        department: lecturers.department,
-        email: lecturers.email,
-        officePhone: lecturers.officePhone,
-        researchArea: lecturers.researchArea,
-        active: lecturers.active,
-        officeId: lecturers.officeId,
-      })
-      .from(lecturers)
-      .orderBy(lecturers.fullName);
-
-    res.status(200).json({ lecturers: rows });
-  } catch (error) {
-    console.error("Failed to list lecturers:", error);
-    res.status(500).json({
-      error: { code: "INTERNAL_ERROR", message: "Lecturers could not be loaded." },
-    });
-  }
-}
 
 /**
  * POST /api/admin/lecturers
@@ -394,6 +363,102 @@ export async function removeLecturerModule(
     console.error("Failed to remove module from lecturer:", error);
     res.status(500).json({
       error: { code: "INTERNAL_ERROR", message: "The module could not be removed." },
+    });
+  }
+}
+
+
+export async function searchLecturers(
+  req: Request,
+  res: Response,
+): Promise<void> {
+  const search = req.query.search;
+
+  if (search !== undefined && typeof search !== "string") {
+    res.status(400).json({
+      error: {
+        code: "INVALID_SEARCH",
+        message: "The search parameter must be a single text value.",
+      },
+    });
+    return;
+  }
+
+  const searchTerm = search?.trim();
+  const lecturerSearchFilter = searchTerm
+    ? ilike(lecturers.fullName, `%${searchTerm}%`)
+    : undefined;
+
+  try {
+    const baseQuery = db
+      .select({
+        id: lecturers.id,
+        fullName: lecturers.fullName,
+        title: lecturers.title,
+        department: lecturers.department,
+        active: lecturers.active,
+        buildingName: floorPlans.buildingName,
+        floorLevel: floorPlans.floorLevel,
+        roomNumber: offices.roomNumber,
+      })
+      .from(lecturers)
+      .leftJoin(offices, eq(lecturers.officeId, offices.id))
+      .leftJoin(floorPlans, eq(offices.floorPlanId, floorPlans.id));
+
+    const rows = lecturerSearchFilter
+      ? await baseQuery.where(lecturerSearchFilter).orderBy(asc(lecturers.fullName))
+      : await baseQuery.orderBy(asc(lecturers.fullName));
+
+    const results = rows.map((row) => ({
+      id: row.id,
+      fullName: row.fullName,
+      title: row.title,
+      department: row.department,
+      active: row.active,
+      office:
+        row.roomNumber === null
+          ? null
+          : {
+              buildingName: row.buildingName,
+              floorLevel: row.floorLevel,
+              roomNumber: row.roomNumber,
+            },
+    }));
+
+    res.status(200).json({ lecturers: results });
+  } catch (error) {
+    console.error("Failed to search lecturers:", error);
+    res.status(500).json({
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "The requested information could not be loaded.",
+      },
+    });
+  }
+}
+
+export async function listModules(
+  _req: Request,
+  res: Response,
+): Promise<void> {
+  try {
+    const rows = await db
+      .select({
+        id: modules.id,
+        code: modules.code,
+        name: modules.name,
+      })
+      .from(modules)
+      .orderBy(asc(modules.code));
+
+    res.status(200).json({ modules: rows });
+  } catch (error) {
+    console.error("Failed to list modules:", error);
+    res.status(500).json({
+      error: {
+        code: "INTERNAL_ERROR",
+        message: "Modules could not be loaded.",
+      },
     });
   }
 }

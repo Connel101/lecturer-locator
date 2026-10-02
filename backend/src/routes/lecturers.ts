@@ -7,5 +7,6 @@ import {
 
 export const lecturerRouter = Router();
 
-lecturerRouter.get("/", searchLecturers);
+
 lecturerRouter.get("/:id", getLecturerProfile);
+lecturerRouter.get("/", searchLecturers);
