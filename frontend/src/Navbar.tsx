@@ -21,6 +21,7 @@ function Navbar() {
   const { data: session } = authClient.useSession();
   const [usermenu, setUserMenu] = useState(false)
   const [showIosInstructions, setShowIosInstructions] = useState(false)
+  const [showHelp, setShowHelp] = useState(false)
 
   const showInstallOption = !isInstalled && (installPrompt !== null || isIos())
 
@@ -76,6 +77,9 @@ function Navbar() {
             
             <Link to="/" onClick={() => setUserMenu(false)}>Profile</Link>
             {installMenuItem}
+            <button type="button" className="top-user__menu-item" onClick={() => { setUserMenu(false); setShowHelp(true); }}>
+              Help &amp; feedback
+            </button>
             <p
             onClick={async () => {
               await authClient.signOut();
@@ -93,9 +97,12 @@ function Navbar() {
           <div className="top-user__menu">
             <Link to="/signin" onClick={() => { setUserMenu(false) }}>Sign In</Link>
             {installMenuItem}
-            
+            <button type="button" className="top-user__menu-item" onClick={() => { setUserMenu(false); setShowHelp(true); }}>
+              Help &amp; feedback
+            </button>
           </div>
         )}
+
         {menu && !session && (
           <div className="top-nav__menu">
             <Link to="/directory" onClick={() => setMenu(false)}>Directory</Link>
@@ -120,6 +127,24 @@ function Navbar() {
                 : <>Open your browser menu and choose <strong>Install app</strong> or <strong>Add to Home screen</strong>.</>}
             </p>
             <button type="button" className="primary-button" onClick={() => setShowIosInstructions(false)}>Got it</button>
+          </section>
+        </div>
+      )}
+
+            {showHelp && (
+        <div className="install-dialog__backdrop" role="presentation" onClick={() => setShowHelp(false)}>
+          <section className="install-dialog" role="dialog" aria-modal="true" aria-labelledby="help-dialog-title" onClick={(event) => event.stopPropagation()}>
+            <h2 id="help-dialog-title">Help &amp; feedback</h2>
+            <ul className="help-dialog__list">
+              <li><strong>Finding a lecturer:</strong> Use the Directory to search by name, or Lecturers if you're signed in as an administrator.</li>
+              <li><strong>Scanning a QR code:</strong> Tap Scan in the bottom bar and point your camera at a lecturer's door sign.</li>
+              <li><strong>Camera permission blocked?</strong> Check your browser or phone settings, allow camera access for this site, then reload the page.</li>
+              <li><strong>Installing the app:</strong> Use "Install app" in this menu to add LecturerLocator to your home screen.</li>
+            </ul>
+            <p>
+              Found a problem? <a href="mailto:support@lecturerlocator.example?subject=LecturerLocator%20feedback">Send us feedback</a>.
+            </p>
+            <button type="button" className="primary-button" onClick={() => setShowHelp(false)}>Close</button>
           </section>
         </div>
       )}
