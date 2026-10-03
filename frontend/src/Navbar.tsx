@@ -64,14 +64,14 @@ function Navbar() {
 )}
       <nav className="top-nav" aria-label="Main navigation">
         <div className="top-nav__brand">
-          <button type="button" onClick={() => setMenu(!menu)} className="top-nav__icon-button" aria-label="Open navigation menu" aria-expanded={menu}>
+          <button type="button" onClick={() => {setMenu(!menu); setUserMenu(false);}} className="top-nav__icon-button" aria-label="Open navigation menu" aria-expanded={menu}>
             <FontAwesomeIcon icon={faBars} />
           </button>
           <span>LecturerLocator</span>
         </div>
 
         
-        <button onClick={() => setUserMenu(!usermenu)} className="top-nav__icon-button" aria-label="Admin sign in"><FontAwesomeIcon icon={faUser} /></button>
+        <button onClick={() => {setUserMenu(!usermenu); setMenu(false);}} className="top-nav__icon-button" aria-label="Admin sign in"><FontAwesomeIcon icon={faUser} /></button>
         {usermenu && session && (
           <div className="top-user__menu">
             
@@ -112,6 +112,7 @@ function Navbar() {
           <div className="top-nav__menu">
             <Link to="/lecturers" onClick={() => setMenu(false)}>Lecturers</Link>
             <Link to="/buildings" onClick={() => setMenu(false)}>Buildings</Link>
+            <Link to="/directory" onClick={() => setMenu(false)}>Directory</Link>
             
           </div>
         )}
