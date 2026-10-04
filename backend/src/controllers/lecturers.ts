@@ -112,6 +112,7 @@ export async function getLecturerProfile(
         department: lecturers.department,
         email: lecturers.email,
         officePhone: lecturers.officePhone,
+        officeId: lecturers.officeId,
         researchArea: lecturers.researchArea,
         buildingName: floorPlans.buildingName,
         floorLevel: floorPlans.floorLevel,
@@ -137,6 +138,7 @@ export async function getLecturerProfile(
     const [lecturerModuleRows, officeHourRows] = await Promise.all([
       db
         .select({
+          id: modules.id,
           code: modules.code,
           name: modules.name,
         })
@@ -168,6 +170,7 @@ export async function getLecturerProfile(
         officePhone: profile.officePhone,
       }),
       modules: lecturerModuleRows.map((module) => ({
+        id: module.id,
         code: module.code,
         ...(module.name !== null && { name: module.name }),
       })),
@@ -183,6 +186,7 @@ export async function getLecturerProfile(
         profile.roomNumber === null
           ? null
           : {
+              id: profile.officeId,
               buildingName: profile.buildingName,
               floorLevel: profile.floorLevel,
               roomNumber: profile.roomNumber,

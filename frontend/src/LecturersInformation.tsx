@@ -31,6 +31,7 @@ function telephoneHref(officePhone: string) {
 function LecturersInformation() {
   const lecturer = useLecturerProfile();
   const photoUrl = lecturer.photoUrl?.trim();
+  const researchArea = lecturer.researchArea?.trim();
   const hasContactDetails = Boolean(lecturer.email || lecturer.officePhone);
   const [failedPhotoUrl, setFailedPhotoUrl] = useState<string | null>(null);
   return (
@@ -73,12 +74,16 @@ function LecturersInformation() {
                 ))}
              
            </div>
-           <div className="mt-2 flex flex-wrap justify-center gap-1.5">
-                  <span className="rounded-full border border-[#e2d2e7] bg-[#f7f0f9] px-2 py-0.5  font-semibold text-[#5a1b70]" >
-                    {lecturer.researchArea}
-                  </span>
-             
-           </div>
+           {researchArea && (
+             <div className="mt-3 w-full min-w-0 border-t border-[#ece7ed] pt-3 text-left">
+               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#695c6c]">
+                 Research area
+               </p>
+               <p className="mt-1 break-words text-sm leading-relaxed text-[#4d3b51] [overflow-wrap:anywhere]">
+                 {researchArea}
+               </p>
+             </div>
+           )}
          </div>
        </section>
 

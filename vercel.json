@@ -31,7 +31,7 @@
       "dest": "/frontend/assets/$1"
     },
     {
-      "src": "/(icon\\.webp|icon-192\\.png|icon-512\\.png|manifest\\.webmanifest)",
+      "src": "/(icon\\.webp|icon-192\\.png|icon-512\\.png|manifest\\.webmanifest|sw\\.js)",
       "dest": "/frontend/$1"
     },
     {
