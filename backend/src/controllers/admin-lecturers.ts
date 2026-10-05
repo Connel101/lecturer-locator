@@ -9,6 +9,8 @@ import {
   offices,
 } from "../db/schema.ts";
 import { db } from "../lib/db.ts";
+import { saveFile } from "../lib/file-storage.ts";
+import { isValidTimetableImage } from "../lib/timetable-image.ts";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -24,6 +26,40 @@ function sendLecturerNotFound(res: Response): void {
 
 function isValidId(id: unknown): id is string {
   return typeof id === "string" && UUID_PATTERN.test(id);
+}
+
+/** PUT /api/admin/lecturers/:id/timetable — uploads or replaces the timetable. */
+export async function uploadLecturerTimetable(req: Request, res: Response): Promise<void> {
+  const lecturerId = req.params.id;
+  if (!isValidId(lecturerId)) {
+    sendLecturerNotFound(res);
+    return;
+  }
+  const contentType = req.get("Content-Type")?.split(";")[0].trim() ?? "";
+  if (!isValidTimetableImage(req.body, contentType)) {
+    res.status(400).json({ error: { message: "Choose a PNG, JPEG or WebP image (up to 4 MB)." } });
+    return;
+  }
+  try {
+    const [lecturer] = await db.select({ id: lecturers.id }).from(lecturers)
+      .where(eq(lecturers.id, lecturerId)).limit(1);
+    if (!lecturer) {
+      sendLecturerNotFound(res);
+      return;
+    }
+    const timetableFileRef = await saveFile("timetables", req.body, contentType);
+    const [updated] = await db.update(lecturers)
+      .set({ timetableFileRef, updatedAt: new Date() })
+      .where(eq(lecturers.id, lecturerId)).returning({ timetableFileRef: lecturers.timetableFileRef });
+    if (!updated) {
+      sendLecturerNotFound(res);
+      return;
+    }
+    res.status(200).json(updated);
+  } catch (error) {
+    console.error("Failed to upload lecturer timetable:", error);
+    res.status(500).json({ error: { message: "The timetable could not be saved. Please try again." } });
+  }
 }
 
 

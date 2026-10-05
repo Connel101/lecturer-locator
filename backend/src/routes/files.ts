@@ -1,5 +1,5 @@
 import express, { Router } from "express";
-import { loadSvg, saveSvg, type UploadKind } from "../lib/file-storage.ts";
+import { loadFile, saveFile, type UploadKind } from "../lib/file-storage.ts";
 import { isValidSvgUpload } from "../lib/svg-upload.ts";
 import { requireAdmin } from "../middleware/require-admin.ts";
 
@@ -18,7 +18,7 @@ filesRouter.post("/:kind", requireAdmin, express.raw({ type: "image/svg+xml", li
     return;
   }
   try {
-    const fileRef = await saveSvg(kind as UploadKind, bytes);
+    const fileRef = await saveFile(kind as UploadKind, bytes);
     res.status(201).json({ fileRef });
   } catch (error) {
     console.error("File upload failed:", error);
@@ -28,13 +28,17 @@ filesRouter.post("/:kind", requireAdmin, express.raw({ type: "image/svg+xml", li
 
 filesRouter.get("/:kind/:name", async (req, res) => {
   const { kind, name } = req.params;
-  if (typeof kind !== "string" || !kinds.has(kind as UploadKind) || typeof name !== "string" || !/^[0-9a-f-]{36}\.svg$/.test(name)) {
+  const timetable = kind === "timetables";
+  const pattern = timetable ? /^[0-9a-f-]{36}\.(png|jpg|webp)$/ : /^[0-9a-f-]{36}\.svg$/;
+  if (typeof kind !== "string" || (!timetable && !kinds.has(kind as UploadKind)) || typeof name !== "string" || !pattern.test(name)) {
     res.sendStatus(404);
     return;
   }
   try {
-    const bytes = await loadSvg(kind as UploadKind, name);
-    res.set("Content-Type", "image/svg+xml")
+    const bytes = await loadFile(kind as UploadKind, name);
+    const extension = name.split(".").pop()!;
+    const contentType = { svg: "image/svg+xml", png: "image/png", jpg: "image/jpeg", webp: "image/webp" }[extension]!;
+    res.set("Content-Type", contentType)
       .set("X-Content-Type-Options", "nosniff")
       .set("Content-Security-Policy", "sandbox; default-src 'none'; style-src 'unsafe-inline'; img-src data:")
       .send(bytes);

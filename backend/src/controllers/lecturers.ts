@@ -114,6 +114,7 @@ export async function getLecturerProfile(
         officePhone: lecturers.officePhone,
         officeId: lecturers.officeId,
         researchArea: lecturers.researchArea,
+        timetableFileRef: lecturers.timetableFileRef,
         buildingName: floorPlans.buildingName,
         floorLevel: floorPlans.floorLevel,
         floorPlanFileRef: floorPlans.fileRef,
@@ -177,6 +178,7 @@ export async function getLecturerProfile(
       ...(profile.researchArea !== null && {
         researchArea: profile.researchArea,
       }),
+      ...(profile.timetableFileRef !== null && { timetableFileRef: profile.timetableFileRef }),
       officeHours: officeHourRows.map((officeHour) => ({
         dayOfWeek: officeHour.dayOfWeek,
         startTime: officeHour.startTime.slice(0, 5),

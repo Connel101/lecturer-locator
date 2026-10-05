@@ -1,6 +1,7 @@
 import Scan from './Scan'
 import LecturerProfileLayout from './LecturerProfileLayout'
 import RouteDirections from './RouteDirections'
+import LecturerTimetable from './LecturerTimetable'
 import Navbar from './Navbar'
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import Directory from "./Directory"
@@ -41,7 +42,8 @@ function App() {
       path="/lecturers/info/:id"
       element={<LecturerProfileLayout />}>
       <Route index element={<LecturersInformation />} />
-      <Route path="directions" element={<RouteDirections />} /></Route>
+      <Route path="directions" element={<RouteDirections />} />
+      <Route path="timetable" element={<LecturerTimetable />} /></Route>
 
       <Route element={<ProtectedRoute />}>
       <Route path="/lecturers" element={<Lecturers />} />

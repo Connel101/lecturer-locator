@@ -4,6 +4,20 @@ The public API is used by the React frontend to search for lecturers, display le
 
 Public endpoints do not require authentication.
 
+## Upload or replace a timetable (administrator)
+
+`PUT /api/admin/lecturers/:id/timetable` accepts a raw PNG, JPEG or WebP image body,
+with its matching `Content-Type` header, up to 4 MB. It saves the image reference
+directly on the lecturer and returns `200 OK` with `{ "timetableFileRef": "/api/files/timetables/<uuid>.png" }`.
+It requires administrator access (`401`/`403`), rejects invalid images (`400`) or
+oversized bodies (`413`), and returns `404` for unknown lecturers.
+Failed uploads leave the existing reference intact.
+
+Images are stored locally in `backend/data/uploads/timetables/` during development
+and under `timetables/` in the configured S3 bucket in production. No additional
+storage settings are needed. Each replacement gets a new reference to avoid stale
+cached images. Previous files are retained, following the existing upload behavior.
+
 ## General rules
 
 - Requests and responses use JSON.
@@ -11,6 +25,7 @@ Public endpoints do not require authentication.
 - Only active lecturers are returned. The `active` field represents whether a lecturer is publicly available.
 - Private and administrator-only information is never returned.
 - Optional text fields are omitted when unavailable.
+- Profiles include optional `timetableFileRef`, an image URL for the lecturer's timetable. It is omitted when no timetable is uploaded.
 - `office` and `route` use `null` when their data is unavailable.
 
 ## Search for lecturers

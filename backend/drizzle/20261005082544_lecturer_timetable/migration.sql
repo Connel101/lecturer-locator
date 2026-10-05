@@ -1,0 +1,1 @@
+ALTER TABLE "lecturers" ADD COLUMN "timetable_file_ref" text;

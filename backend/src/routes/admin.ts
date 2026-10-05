@@ -1,4 +1,4 @@
-import { Router } from "express";
+import express, { Router } from "express";
 
 import { requireAdmin } from "../middleware/require-admin.ts";
 import {
@@ -22,6 +22,7 @@ import {
   setLecturerActive,
   setLecturerOffice,
   updateLecturer,
+  uploadLecturerTimetable,
   searchLecturers,
   listModules
 } from "../controllers/admin-lecturers.ts";
@@ -41,6 +42,7 @@ adminRouter.get("/lecturers", searchLecturers);
 
 adminRouter.post("/lecturers", createLecturer);
 adminRouter.patch("/lecturers/:id", updateLecturer);
+adminRouter.put("/lecturers/:id/timetable", express.raw({ type: ["image/png", "image/jpeg", "image/webp"], limit: "4mb" }), uploadLecturerTimetable);
 adminRouter.patch("/lecturers/:id/active", setLecturerActive);
 adminRouter.patch("/lecturers/:id/office", setLecturerOffice);
 adminRouter.post("/lecturers/:id/modules", addLecturerModule);
