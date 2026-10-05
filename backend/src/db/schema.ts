@@ -103,6 +103,8 @@ export const lecturers = pgTable("lecturers", {
 
   researchArea: text("research_area"),
 
+  timetableFileRef: text("timetable_file_ref"),
+
   active: boolean("active").default(true).notNull(),
 
   officeId: integer("office_id").references(() => offices.id, {

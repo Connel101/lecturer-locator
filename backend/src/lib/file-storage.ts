@@ -1,10 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { readFile, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-export type UploadKind = "floor-plans" | "routes";
+export type UploadKind = "floor-plans" | "routes" | "timetables";
 const floorplanDirectory = fileURLToPath(new URL("../data/floorplans/", import.meta.url));
 const previousUploadDirectory = fileURLToPath(new URL("../../data/uploads/", import.meta.url));
 
@@ -29,19 +29,24 @@ function storageConfig() {
   };
 }
 
-export async function saveSvg(kind: UploadKind, bytes: Buffer): Promise<string> {
-  const name = `${randomUUID()}.svg`;
+export async function saveFile(kind: UploadKind, bytes: Buffer, contentType = "image/svg+xml"): Promise<string> {
+  const extension = { "image/svg+xml": "svg", "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp" }[contentType];
+  if (!extension) throw new Error("Unsupported file type.");
+  const name = `${randomUUID()}.${extension}`;
   const key = `${kind}/${name}`;
   const config = storageConfig();
   if (config) {
-    await config.client.send(new PutObjectCommand({ Bucket: config.bucket, Key: key, Body: bytes, ContentType: "image/svg+xml" }));
+    await config.client.send(new PutObjectCommand({ Bucket: config.bucket, Key: key, Body: bytes, ContentType: contentType }));
+  } else if (kind === "timetables") {
+    await mkdir(join(previousUploadDirectory, kind), { recursive: true });
+    await writeFile(join(previousUploadDirectory, key), bytes, { flag: "wx" });
   } else {
     await writeFile(join(floorplanDirectory, localFilename(kind, name)), bytes, { flag: "wx" });
   }
   return `/api/files/${key}`;
 }
 
-export async function loadSvg(kind: UploadKind, name: string): Promise<Buffer> {
+export async function loadFile(kind: UploadKind, name: string): Promise<Buffer> {
   const key = `${kind}/${name}`;
   const config = storageConfig();
   if (config) {
@@ -49,6 +54,7 @@ export async function loadSvg(kind: UploadKind, name: string): Promise<Buffer> {
     if (!result.Body) throw new Error("Stored file has no body.");
     return Buffer.from(await result.Body.transformToByteArray());
   }
+  if (kind === "timetables") return readFile(join(previousUploadDirectory, key));
   try {
     return await readFile(join(floorplanDirectory, localFilename(kind, name)));
   } catch (error) {

@@ -903,4 +903,37 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
 
  
 
+.timetable-page {
+  max-width: 1200px;
+}
 
+.timetable-edit {
+  display: grid;
+  gap: 1rem;
+}
+
+.timetable-edit button {
+  justify-self: start;
+}
+
+.timetable-page h1 {
+  margin: 1rem 0;
+}
+
+.timetable-image {
+  overflow: auto;
+  border: 1px solid #ece7ed;
+  border-radius: 5px;
+  background: white;
+}
+
+.timetable-image img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.timetable-image img.timetable-image--enlarged {
+  width: 200%;
+  max-width: none;
+}

@@ -50,6 +50,40 @@ function LecturerEdit() {
   const [modules, setModules] = useState(lecturer.modules);
   const[moduleList, setModuleList] = useState<Module[]>([]);
   const [moduleId,setModuleId] = useState<number | null>(null);
+  const [timetableFileRef, setTimetableFileRef] = useState(lecturer.timetableFileRef);
+  const [isSavingTimetable, setIsSavingTimetable] = useState(false);
+  const [timetableMessage, setTimetableMessage] = useState('');
+  const [timetableError, setTimetableError] = useState('');
+
+  async function handleSaveTimetable(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const form = event.currentTarget;
+    const file = new FormData(form).get('timetable');
+    setTimetableMessage('');
+    setTimetableError('');
+    if (!(file instanceof File) || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size === 0 || file.size > 4 * 1024 * 1024) {
+      setTimetableError('Choose a PNG, JPEG or WebP image (up to 4 MB).');
+      return;
+    }
+    setIsSavingTimetable(true);
+    try {
+      const response = await fetch(`/api/admin/lecturers/${lecturer.id}/timetable`, {
+        method: 'PUT', headers: { 'Content-Type': file.type }, body: file,
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error?.message ?? 'The timetable could not be saved. Please try again.');
+      }
+      const data = await response.json() as { timetableFileRef: string };
+      setTimetableFileRef(data.timetableFileRef);
+      form.reset();
+      setTimetableMessage('Timetable saved successfully.');
+    } catch (error) {
+      setTimetableError(error instanceof Error ? error.message : 'The timetable could not be saved. Please try again.');
+    } finally {
+      setIsSavingTimetable(false);
+    }
+  }
 
   useEffect(() => {
   async function loadModules() {
@@ -403,6 +437,25 @@ function LecturerEdit() {
         
           </div>
           </section>
+
+      <form onSubmit={handleSaveTimetable}>
+        <section className="timetable-edit mt-4 rounded-[5px] border border-[#ece7ed] bg-white p-4 shadow-sm">
+          <h2 className="font-bold text-[#4b145f]">Timetable</h2>
+          {timetableFileRef ? (
+            <img className="w-full rounded border border-[#ece7ed]" src={timetableFileRef} alt={`Timetable for ${lecturer.fullName}`} />
+          ) : <p className="status-message">No timetable uploaded.</p>}
+          <label className="search-field">
+            <span>{timetableFileRef ? 'Replace timetable' : 'Upload timetable'}</span>
+            <input name="timetable" type="file" accept="image/png,image/jpeg,image/webp" required disabled={isSavingTimetable} aria-describedby="timetable-help" />
+          </label>
+          <p id="timetable-help" className="status-message">PNG, JPEG or WebP image, up to 4 MB.</p>
+          <button className="primary-button" type="submit" disabled={isSavingTimetable}>
+            {isSavingTimetable ? 'Saving…' : 'Save timetable'}
+          </button>
+          {timetableMessage && <p className="status-message status-message--success" role="status">{timetableMessage}</p>}
+          {timetableError && <p className="status-message status-message--error" role="alert">{timetableError}</p>}
+        </section>
+      </form>
 
       {isAddModuleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#261632]/50 p-4">

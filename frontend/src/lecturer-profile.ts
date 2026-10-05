@@ -11,6 +11,7 @@ export interface LecturerProfile {
   officePhone?: string
   modules: { id:number,code: string; name?: string }[]
   researchArea?: string
+  timetableFileRef?: string
   officeHours: { dayOfWeek: number; startTime: string; endTime: string }[]
   office: { id:number | null,buildingName: string | null; floorLevel: number | null; roomNumber: string } | null
   route: {

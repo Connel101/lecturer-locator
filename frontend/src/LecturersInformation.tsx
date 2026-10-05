@@ -163,6 +163,13 @@ function LecturersInformation() {
           </Link>
        </section>
 
+       <section className="mt-3 rounded-[5px] border border-[#ece7ed] bg-white p-3 shadow-sm">
+         <h2 className="mb-2 font-bold text-[#4b145f]">Timetable</h2>
+         {lecturer.timetableFileRef ? (
+           <Link to="timetable" className="primary-button flex min-h-14 items-center justify-center no-underline">View timetable</Link>
+         ) : <p className="status-message">No timetable is available.</p>}
+       </section>
+
        {/* QR Code */}
        <section className="mt-3 rounded-[5px] border border-[#ece7ed] bg-white p-3 text-center shadow-sm">
          <p className=" font-medium uppercase tracking-[0.12em] text-[#5d4b61]">
