@@ -62,7 +62,6 @@ function LecturerEdit() {
   const [modules, setModules] = useState(lecturer.modules);
   const[moduleList, setModuleList] = useState<Module[]>([]);
   const [moduleId,setModuleId] = useState<number | null>(null);
-  const [timetableFileRef, setTimetableFileRef] = useState(lecturer.timetableFileRef);
   const [isSavingTimetable, setIsSavingTimetable] = useState(false);
   const [timetableMessage, setTimetableMessage] = useState('');
   const [timetableError, setTimetableError] = useState('');
@@ -88,13 +87,13 @@ function LecturerEdit() {
     office.buildingName.trim() === building.trim() &&
     office.floorLevel.toString() === floorlevel
 );
-  async function handleSaveTimetable(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const file = new FormData(form).get('timetable');
+  async function handleSaveTimetable(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = '';
     setTimetableMessage('');
     setTimetableError('');
-    if (!(file instanceof File) || !['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size === 0 || file.size > 4 * 1024 * 1024) {
+    if (!file) return;
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size === 0 || file.size > 4 * 1024 * 1024) {
       setTimetableError('Choose a PNG, JPEG or WebP image (up to 4 MB).');
       return;
     }
@@ -108,8 +107,7 @@ function LecturerEdit() {
         throw new Error(data?.error?.message ?? 'The timetable could not be saved. Please try again.');
       }
       const data = await response.json() as { timetableFileRef: string };
-      setTimetableFileRef(data.timetableFileRef);
-      form.reset();
+      lecturer.setTimetableFileRef(data.timetableFileRef);
       setTimetableMessage('Timetable saved successfully.');
     } catch (error) {
       setTimetableError(error instanceof Error ? error.message : 'The timetable could not be saved. Please try again.');
@@ -550,24 +548,27 @@ function LecturerEdit() {
           </div>
           </section>
 
-      <form onSubmit={handleSaveTimetable}>
-        <section className="timetable-edit mt-4 rounded-[5px] border border-[#ece7ed] bg-white p-4 shadow-sm">
-          <h2 className="font-bold text-[#4b145f]">Timetable</h2>
-          {timetableFileRef ? (
-            <img className="w-full rounded border border-[#ece7ed]" src={timetableFileRef} alt={`Timetable for ${lecturer.fullName}`} />
-          ) : <p className="status-message">No timetable uploaded.</p>}
-          <label className="search-field">
-            <span>{timetableFileRef ? 'Replace timetable' : 'Upload timetable'}</span>
-            <input name="timetable" type="file" accept="image/png,image/jpeg,image/webp" required disabled={isSavingTimetable} aria-describedby="timetable-help" />
-          </label>
-          <p id="timetable-help" className="status-message">PNG, JPEG or WebP image, up to 4 MB.</p>
-          <button className="primary-button" type="submit" disabled={isSavingTimetable}>
-            {isSavingTimetable ? 'Saving…' : 'Save timetable'}
-          </button>
-          {timetableMessage && <p className="status-message status-message--success" role="status">{timetableMessage}</p>}
-          {timetableError && <p className="status-message status-message--error" role="alert">{timetableError}</p>}
-        </section>
-      </form>
+      <section className="timetable-edit mt-4 rounded-[5px] border border-[#ece7ed] bg-white p-4 shadow-sm">
+        <h2 className="font-bold text-[#4b145f]">Timetable</h2>
+        <label className={`relative block cursor-pointer overflow-hidden rounded border border-[#e2dce4] bg-[#f7f4f8] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#4b145f] ${isSavingTimetable ? 'opacity-60' : ''}`}>
+          {lecturer.timetableFileRef ? (
+            <>
+              <img className="w-full" src={lecturer.timetableFileRef} alt={`Timetable for ${lecturer.fullName}`} />
+              <span className="absolute bottom-3 right-3 rounded-full bg-[#4b145f] px-3 py-1.5 text-sm font-medium text-white" aria-live="polite">
+                {isSavingTimetable ? 'Saving…' : 'Replace image'}
+              </span>
+            </>
+          ) : (
+            <span className="flex min-h-48 flex-col items-center justify-center gap-1 text-center text-[#4b145f]">
+              <span className="font-medium">{isSavingTimetable ? 'Saving…' : 'Upload timetable'}</span>
+              <span className="text-sm text-[#695c6c]">PNG, JPEG or WebP, up to 4 MB</span>
+            </span>
+          )}
+          <input className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" aria-label="Upload lecturer timetable" disabled={isSavingTimetable} onChange={handleSaveTimetable} />
+        </label>
+        {timetableMessage && <p className="status-message status-message--success" role="status">{timetableMessage}</p>}
+        {timetableError && <p className="status-message status-message--error" role="alert">{timetableError}</p>}
+      </section>
 
       {isAddModuleModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#261632]/50 p-4">

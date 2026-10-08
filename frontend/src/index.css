@@ -932,10 +932,6 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
   gap: 1rem;
 }
 
-.timetable-edit button {
-  justify-self: start;
-}
-
 .timetable-page h1 {
   margin: 1rem 0;
 }

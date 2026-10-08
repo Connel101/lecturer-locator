@@ -34,7 +34,11 @@ function ProfileLoader({ id }: { id: string }) {
     return () => controller.abort()
   }, [id, attempt])
 
-  if (lecturer) return <Outlet context={{ ...lecturer, setPhotoUrl: (photoUrl: string) => setLecturer({ ...lecturer, photoUrl }) }} />
+  if (lecturer) return <Outlet context={{
+    ...lecturer,
+    setPhotoUrl: (photoUrl: string) => setLecturer(current => current && { ...current, photoUrl }),
+    setTimetableFileRef: (timetableFileRef: string) => setLecturer(current => current && { ...current, timetableFileRef }),
+  }} />
   return <main className="page-shell profile-page">
     <Link className="route-link" to="/directory">← Back to directory</Link>
     <p className="status-message" role="status">

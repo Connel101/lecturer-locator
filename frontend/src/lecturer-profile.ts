@@ -21,5 +21,8 @@ export interface LecturerProfile {
 }
 
 export function useLecturerProfile() {
-  return useOutletContext<LecturerProfile & { setPhotoUrl: (photoUrl: string) => void }>()
+  return useOutletContext<LecturerProfile & {
+    setPhotoUrl: (photoUrl: string) => void
+    setTimetableFileRef: (timetableFileRef: string) => void
+  }>()
 }
