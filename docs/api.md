@@ -18,6 +18,14 @@ and under `timetables/` in the configured S3 bucket in production. No additional
 storage settings are needed. Each replacement gets a new reference to avoid stale
 cached images. Previous files are retained, following the existing upload behavior.
 
+## Upload or replace a profile photo (administrator)
+
+`PUT /api/admin/lecturers/:id/photo` accepts the same raw image types and 4 MB limit
+as the timetable endpoint. It returns `{ "photoUrl": "/api/files/profile-photos/<uuid>.png" }`.
+Photos are stored in `backend/data/uploads/profile-photos/` locally and under
+`profile-photos/` in the configured S3 bucket in production. The public lecturer
+profile includes `photoUrl` when a photo has been uploaded.
+
 ## General rules
 
 - Requests and responses use JSON.
@@ -26,6 +34,7 @@ cached images. Previous files are retained, following the existing upload behavi
 - Private and administrator-only information is never returned.
 - Optional text fields are omitted when unavailable.
 - Profiles include optional `timetableFileRef`, an image URL for the lecturer's timetable. It is omitted when no timetable is uploaded.
+- Profiles include optional `photoUrl`, an image URL for the lecturer's profile photo. It is omitted when no photo is uploaded.
 - `office` and `route` use `null` when their data is unavailable.
 
 ## Search for lecturers

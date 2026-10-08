@@ -10,7 +10,7 @@ import {
 } from "../db/schema.ts";
 import { db } from "../lib/db.ts";
 import { saveFile } from "../lib/file-storage.ts";
-import { isValidTimetableImage } from "../lib/timetable-image.ts";
+import { isValidImageUpload } from "../lib/image-upload.ts";
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -36,7 +36,7 @@ export async function uploadLecturerTimetable(req: Request, res: Response): Prom
     return;
   }
   const contentType = req.get("Content-Type")?.split(";")[0].trim() ?? "";
-  if (!isValidTimetableImage(req.body, contentType)) {
+  if (!isValidImageUpload(req.body, contentType)) {
     res.status(400).json({ error: { message: "Choose a PNG, JPEG or WebP image (up to 4 MB)." } });
     return;
   }
@@ -59,6 +59,40 @@ export async function uploadLecturerTimetable(req: Request, res: Response): Prom
   } catch (error) {
     console.error("Failed to upload lecturer timetable:", error);
     res.status(500).json({ error: { message: "The timetable could not be saved. Please try again." } });
+  }
+}
+
+/** PUT /api/admin/lecturers/:id/photo — uploads or replaces the profile photo. */
+export async function uploadLecturerPhoto(req: Request, res: Response): Promise<void> {
+  const lecturerId = req.params.id;
+  if (!isValidId(lecturerId)) {
+    sendLecturerNotFound(res);
+    return;
+  }
+  const contentType = req.get("Content-Type")?.split(";")[0].trim() ?? "";
+  if (!isValidImageUpload(req.body, contentType)) {
+    res.status(400).json({ error: { message: "Choose a PNG, JPEG or WebP image (up to 4 MB)." } });
+    return;
+  }
+  try {
+    const [lecturer] = await db.select({ id: lecturers.id }).from(lecturers)
+      .where(eq(lecturers.id, lecturerId)).limit(1);
+    if (!lecturer) {
+      sendLecturerNotFound(res);
+      return;
+    }
+    const photoUrl = await saveFile("profile-photos", req.body, contentType);
+    const [updated] = await db.update(lecturers)
+      .set({ photoUrl, updatedAt: new Date() })
+      .where(eq(lecturers.id, lecturerId)).returning({ photoUrl: lecturers.photoUrl });
+    if (!updated) {
+      sendLecturerNotFound(res);
+      return;
+    }
+    res.status(200).json(updated);
+  } catch (error) {
+    console.error("Failed to upload lecturer photo:", error);
+    res.status(500).json({ error: { message: "The photo could not be saved. Please try again." } });
   }
 }
 
