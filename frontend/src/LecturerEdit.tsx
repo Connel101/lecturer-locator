@@ -1,5 +1,5 @@
 
-import { useEffect,useState, type FormEvent } from "react";
+import { useEffect,useState, type ChangeEvent, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useLecturerProfile } from './lecturer-profile';
 
@@ -66,6 +66,9 @@ function LecturerEdit() {
   const [isSavingTimetable, setIsSavingTimetable] = useState(false);
   const [timetableMessage, setTimetableMessage] = useState('');
   const [timetableError, setTimetableError] = useState('');
+  const [isSavingPhoto, setIsSavingPhoto] = useState(false);
+  const [photoMessage, setPhotoMessage] = useState('');
+  const [photoError, setPhotoError] = useState('');
 
   const floorLevels = [
   ...new Set(
@@ -112,6 +115,35 @@ function LecturerEdit() {
       setTimetableError(error instanceof Error ? error.message : 'The timetable could not be saved. Please try again.');
     } finally {
       setIsSavingTimetable(false);
+    }
+  }
+
+  async function handleSavePhoto(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.currentTarget.files?.[0];
+    event.currentTarget.value = '';
+    setPhotoMessage('');
+    setPhotoError('');
+    if (!file) return;
+    if (!['image/png', 'image/jpeg', 'image/webp'].includes(file.type) || file.size === 0 || file.size > 4 * 1024 * 1024) {
+      setPhotoError('Choose a PNG, JPEG or WebP image (up to 4 MB).');
+      return;
+    }
+    setIsSavingPhoto(true);
+    try {
+      const response = await fetch(`/api/admin/lecturers/${lecturer.id}/photo`, {
+        method: 'PUT', headers: { 'Content-Type': file.type }, body: file,
+      });
+      if (!response.ok) {
+        const data = await response.json().catch(() => null);
+        throw new Error(data?.error?.message ?? 'The photo could not be saved. Please try again.');
+      }
+      const data = await response.json() as { photoUrl: string };
+      lecturer.setPhotoUrl(data.photoUrl);
+      setPhotoMessage('Photo saved successfully.');
+    } catch (error) {
+      setPhotoError(error instanceof Error ? error.message : 'The photo could not be saved. Please try again.');
+    } finally {
+      setIsSavingPhoto(false);
     }
   }
 
@@ -302,6 +334,15 @@ function LecturerEdit() {
       <Link className="route-link" to="/lecturers">← Back to lecturers</Link>
       <form onSubmit={handleSaveDetails}>
         <section className="rounded-[5px] border border-[#ece7ed] bg-white p-4 shadow-sm">
+          <div className="mb-4 flex flex-col items-center gap-2">
+            <label className={`relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[#e2dce4] bg-[#f3edf5] text-3xl font-semibold text-[#4b145f] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#4b145f] ${isSavingPhoto ? 'opacity-60' : ''}`}>
+              {lecturer.photoUrl ? <img className="h-full w-full object-cover" src={lecturer.photoUrl} alt="" /> : fullName.trim().charAt(0).toUpperCase()}
+              <span className="absolute inset-x-0 bottom-0 bg-[#4b145f]/85 py-1 text-center text-xs font-medium text-white">{isSavingPhoto ? 'Saving…' : lecturer.photoUrl ? 'Change' : 'Add photo'}</span>
+              <input className="absolute inset-0 cursor-pointer opacity-0" type="file" accept="image/png,image/jpeg,image/webp" aria-label="Upload lecturer profile photo" disabled={isSavingPhoto} onChange={handleSavePhoto} />
+            </label>
+            {photoMessage && <p className="status-message status-message--success" role="status">{photoMessage}</p>}
+            {photoError && <p className="status-message status-message--error" role="alert">{photoError}</p>}
+          </div>
           <h1 className="font-bold text-[#4b145f]">Edit lecturer</h1>
           <div className="mt-4 grid gap-3">
             <label className="search-field">
