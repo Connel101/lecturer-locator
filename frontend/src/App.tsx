@@ -14,6 +14,7 @@ import LecturersInformation from './LecturersInformation'
 import ProtectedRoute from "./ProtectedRoute";
 import LecturerEdit from './LecturerEdit'
 import LecturerCreate from './LecturerCreate'
+import AdminMenu from './AdminMenu'
 
 
 function Map() {
@@ -46,6 +47,7 @@ function App() {
       <Route path="timetable" element={<LecturerTimetable />} /></Route>
 
       <Route element={<ProtectedRoute />}>
+      <Route path="/admin" element={<AdminMenu />} />
       <Route path="/lecturers" element={<Lecturers />} />
       <Route path="/buildings" element={<Buildings />} />
       <Route
