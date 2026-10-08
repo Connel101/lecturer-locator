@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faBars, faBuildingColumns, faCamera, faUser } from '@fortawesome/free-solid-svg-icons'
+import { faBars, faBuildingColumns, faCamera, faUser, faUserGear } from '@fortawesome/free-solid-svg-icons'
 import { Link, NavLink } from 'react-router-dom'
 import { authClient } from "./lib/auth-client";
 import { usePwaInstall } from "./hooks/usePwaInstall";
@@ -71,10 +71,10 @@ function Navbar() {
         </div>
 
         
-        <button onClick={() => {setUserMenu(!usermenu); setMenu(false);}} className="top-nav__icon-button" aria-label="Admin sign in"><FontAwesomeIcon icon={faUser} /></button>
+        <button type="button" onClick={() => {setUserMenu(!usermenu); setMenu(false);}} className="top-nav__icon-button" aria-label="Account menu" aria-expanded={usermenu}><FontAwesomeIcon icon={faUser} /></button>
         {usermenu && session && (
           <div className="top-user__menu">
-            
+            <Link to="/admin" onClick={() => setUserMenu(false)}>Admin menu</Link>
             <Link to="/" onClick={() => setUserMenu(false)}>Profile</Link>
             {installMenuItem}
             <button type="button" className="top-user__menu-item" onClick={() => { setUserMenu(false); setShowHelp(true); }}>
@@ -103,17 +103,9 @@ function Navbar() {
           </div>
         )}
 
-        {menu && !session && (
+        {menu && (
           <div className="top-nav__menu">
             <Link to="/directory" onClick={() => setMenu(false)}>Directory</Link>
-          </div>
-        )}
-        {menu && session && (
-          <div className="top-nav__menu">
-            <Link to="/lecturers" onClick={() => setMenu(false)}>Lecturers</Link>
-            <Link to="/buildings" onClick={() => setMenu(false)}>Buildings</Link>
-            <Link to="/directory" onClick={() => setMenu(false)}>Directory</Link>
-            
           </div>
         )}
       </nav>
@@ -159,6 +151,12 @@ function Navbar() {
           <span className="mobile-nav__scan-button"><FontAwesomeIcon icon={faCamera} /></span>
           <span>Scan</span>
         </NavLink>
+        {session && (
+          <NavLink to="/admin" className={tabClassName}>
+            <FontAwesomeIcon icon={faUserGear} />
+            <span>Admin</span>
+          </NavLink>
+        )}
         
       </nav>
     </>

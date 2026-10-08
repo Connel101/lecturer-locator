@@ -479,6 +479,26 @@ h1 { margin: 0; font-size: clamp(2rem, 8vw, 3.5rem); line-height: 1.05; letter-s
   font-size: 0.9rem;
 }
 
+.admin-menu {
+  display: grid;
+  gap: .85rem;
+}
+
+.admin-menu__link {
+  gap: .5rem;
+}
+
+.admin-menu__link svg {
+  color: #8539b6;
+  font-size: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .admin-menu {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .status-message {
   margin: 0;
   padding: 1rem;
