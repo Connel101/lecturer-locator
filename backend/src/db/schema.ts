@@ -104,6 +104,7 @@ export const lecturers = pgTable("lecturers", {
   researchArea: text("research_area"),
 
   timetableFileRef: text("timetable_file_ref"),
+  photoUrl: text("photo_url"),
 
   active: boolean("active").default(true).notNull(),
 

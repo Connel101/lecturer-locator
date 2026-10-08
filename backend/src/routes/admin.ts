@@ -23,6 +23,7 @@ import {
   setLecturerOffice,
   updateLecturer,
   uploadLecturerTimetable,
+  uploadLecturerPhoto,
   searchLecturers,
   listModules
 } from "../controllers/admin-lecturers.ts";
@@ -43,6 +44,7 @@ adminRouter.get("/lecturers", searchLecturers);
 adminRouter.post("/lecturers", createLecturer);
 adminRouter.patch("/lecturers/:id", updateLecturer);
 adminRouter.put("/lecturers/:id/timetable", express.raw({ type: ["image/png", "image/jpeg", "image/webp"], limit: "4mb" }), uploadLecturerTimetable);
+adminRouter.put("/lecturers/:id/photo", express.raw({ type: ["image/png", "image/jpeg", "image/webp"], limit: "4mb" }), uploadLecturerPhoto);
 adminRouter.patch("/lecturers/:id/active", setLecturerActive);
 adminRouter.patch("/lecturers/:id/office", setLecturerOffice);
 adminRouter.post("/lecturers/:id/modules", addLecturerModule);

@@ -1,0 +1,1 @@
+ALTER TABLE "lecturers" ADD COLUMN "photo_url" text;

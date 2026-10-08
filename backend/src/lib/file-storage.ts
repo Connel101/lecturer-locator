@@ -4,7 +4,7 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { GetObjectCommand, PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-export type UploadKind = "floor-plans" | "routes" | "timetables";
+export type UploadKind = "floor-plans" | "routes" | "timetables" | "profile-photos";
 const floorplanDirectory = fileURLToPath(new URL("../data/floorplans/", import.meta.url));
 const previousUploadDirectory = fileURLToPath(new URL("../../data/uploads/", import.meta.url));
 
@@ -37,7 +37,7 @@ export async function saveFile(kind: UploadKind, bytes: Buffer, contentType = "i
   const config = storageConfig();
   if (config) {
     await config.client.send(new PutObjectCommand({ Bucket: config.bucket, Key: key, Body: bytes, ContentType: contentType }));
-  } else if (kind === "timetables") {
+  } else if (kind === "timetables" || kind === "profile-photos") {
     await mkdir(join(previousUploadDirectory, kind), { recursive: true });
     await writeFile(join(previousUploadDirectory, key), bytes, { flag: "wx" });
   } else {
@@ -54,7 +54,7 @@ export async function loadFile(kind: UploadKind, name: string): Promise<Buffer> 
     if (!result.Body) throw new Error("Stored file has no body.");
     return Buffer.from(await result.Body.transformToByteArray());
   }
-  if (kind === "timetables") return readFile(join(previousUploadDirectory, key));
+  if (kind === "timetables" || kind === "profile-photos") return readFile(join(previousUploadDirectory, key));
   try {
     return await readFile(join(floorplanDirectory, localFilename(kind, name)));
   } catch (error) {
