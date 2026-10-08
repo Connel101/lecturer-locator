@@ -20,8 +20,20 @@ interface Module {
   name: string;
 }
 
+interface FloorPlan {
+  id: number;
+  buildingName: string;
+  floorLevel: number;
+  fileRef: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 function LecturerEdit() {
   const [offices, setOffices] = useState<Office[]>([]);
+  const [buildings, setBuildings] = useState<string[]>([]);
+  
+  const [floorPlans, setFloorPlans] = useState<FloorPlan[]>([]);
   
   //fullName, title, department, email, officePhone, researchArea
   const lecturer = useLecturerProfile();
@@ -55,6 +67,24 @@ function LecturerEdit() {
   const [timetableMessage, setTimetableMessage] = useState('');
   const [timetableError, setTimetableError] = useState('');
 
+  const floorLevels = [
+  ...new Set(
+    floorPlans
+      .filter(
+        (floorPlan) =>
+          floorPlan.buildingName.trim() === building.trim()
+      )
+      .map((floorPlan) => floorPlan.floorLevel)
+  ),
+]
+  .sort((a, b) => a - b)
+  .map(String);
+
+  const availableOffices = offices.filter(
+  (office) =>
+    office.buildingName.trim() === building.trim() &&
+    office.floorLevel.toString() === floorlevel
+);
   async function handleSaveTimetable(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const form = event.currentTarget;
@@ -84,6 +114,30 @@ function LecturerEdit() {
       setIsSavingTimetable(false);
     }
   }
+
+  
+
+  useEffect(() => {
+    async function loadBuildings() {
+      try {
+        const response = await fetch("/api/admin/floor-plans");
+        if (!response.ok) {
+          throw new Error("Failed to load floor plans");
+        }
+
+        const data: { floorPlans: FloorPlan[] } = await response.json();
+        setFloorPlans(data.floorPlans);
+        setBuildings(
+          [...new Set(data.floorPlans.map((floorPlan) => floorPlan.buildingName.trim()).filter(Boolean))]
+            .sort((a, b) => a.localeCompare(b)),
+        );
+      } catch (error) {
+        console.error("Failed to load buildings:", error);
+      }
+    }
+
+    void loadBuildings();
+  }, []);
 
   useEffect(() => {
   async function loadModules() {
@@ -323,8 +377,13 @@ function LecturerEdit() {
                 <p className="m-0 text-xs font-normal leading-tight">{building}</p>
               )}
               {editOffice && (
-                <select>
-                  <option value="building">{"G3"}</option>
+                <select value={building} onChange={(event) => setBuilding(event.target.value)}>
+                  <option value="">Select a building</option>
+                  {buildings.map((buildingName) => (
+                    <option key={buildingName} value={buildingName}>
+                      {buildingName}
+                    </option>
+                  ))}
                 </select>
                 )}
             </label>
@@ -334,9 +393,21 @@ function LecturerEdit() {
                 <p className="m-0 text-xs font-normal leading-tight">{floorlevel}</p>
               )}
               {editOffice && (
-                <select>
-                  <option value="floorlevel">{"1"}</option>
-                </select>
+                
+
+                <select
+  value={floorlevel}
+  onChange={(e) => setFloorLevel(e.target.value)}
+  disabled={!building}
+>
+  <option value="">Select floor</option>
+
+  {floorLevels.map((floor) => (
+    <option key={floor} value={floor}>
+      Floor {floor}
+    </option>
+  ))}
+</select>
                 )}
             </label>
             <label className="search-field">
@@ -346,20 +417,20 @@ function LecturerEdit() {
               )}
               {editOffice && (
                 <select
-                  value={officeId ?? ""}
-                  onChange={(e) => {
-                  setOfficeId(e.target.value ? Number(e.target.value) : null);
-                  }}
-                >
-                <option value="">Select an office</option>
+  value={officeId ?? ""}
+  onChange={(e) => {
+    setOfficeId(e.target.value ? Number(e.target.value) : null);
+  }}
+  disabled={!building || !floorlevel}
+>
+  <option value="">Select an office</option>
 
-                {offices.map((office) => (
-                <option key={office.id} value={office.id}>
-                {office.buildingName} - Floor {office.floorLevel} - Room{" "}
-                {office.roomNumber}
-                </option>
-                 ))}
-                </select>
+  {availableOffices.map((office) => (
+    <option key={office.id} value={office.id}>
+      Room {office.roomNumber}
+    </option>
+  ))}
+</select>
                 )}
             </label>
             
