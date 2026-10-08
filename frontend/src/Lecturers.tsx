@@ -131,6 +131,7 @@ function Lecturers() {
 
   return (
     <main className="page-shell">
+      <Link className="route-link" to="/admin">← Back to admin menu</Link>
       <h1 className="text-2xl font-bold text-[#4b145f]">Lecturer management</h1>
 
       <p className="page-intro">
