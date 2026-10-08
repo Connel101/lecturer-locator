@@ -74,7 +74,6 @@ function Navbar() {
         <button type="button" onClick={() => {setUserMenu(!usermenu); setMenu(false);}} className="top-nav__icon-button" aria-label="Account menu" aria-expanded={usermenu}><FontAwesomeIcon icon={faUser} /></button>
         {usermenu && session && (
           <div className="top-user__menu">
-            <Link to="/admin" onClick={() => setUserMenu(false)}>Admin menu</Link>
             <Link to="/" onClick={() => setUserMenu(false)}>Profile</Link>
             {installMenuItem}
             <button type="button" className="top-user__menu-item" onClick={() => { setUserMenu(false); setShowHelp(true); }}>
@@ -105,6 +104,7 @@ function Navbar() {
 
         {menu && (
           <div className="top-nav__menu">
+            {session && <Link to="/admin" onClick={() => setMenu(false)}>Admin menu</Link>}
             <Link to="/directory" onClick={() => setMenu(false)}>Directory</Link>
           </div>
         )}

@@ -825,6 +825,7 @@ function Buildings() {
 
   return (
     <main className="page-shell location-management">
+      <Link className="route-link" to="/admin">← Back to admin menu</Link>
       <p className="eyebrow">Administration</p>
       <h1>Location management</h1>
       <p className="page-intro">
