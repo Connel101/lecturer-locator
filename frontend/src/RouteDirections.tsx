@@ -56,16 +56,81 @@ async function decodeImage(url: string) {
 export default function RouteDirections() {
   const lecturer = useLecturerProfile()
   const route = lecturer.route
+
+  const isBasementB03 =
+    lecturer.office?.roomNumber === 'B03' &&
+    route?.floorPlan.buildingName === 'G3' &&
+    route.floorPlan.floorLevel === -1
+
+  if (isBasementB03 && route?.svgOverlay) {
+    return <main className="page-shell directions-page">
+      <Link className="route-link" to={`/lecturers/info/${lecturer.id}`}>
+        ← Back to profile
+      </Link>
+
+      <h1>Directions to {lecturer.fullName}</h1>
+
+      <p className="page-intro" id="route-description">
+        G3 · Basement · Room B03<br />
+        Follow the route in two stages: first to the stairs, then downstairs to room B03.
+      </p>
+
+      <section>
+        <h2>1. Main Entrance to stairs</h2>
+        <p>
+          Start at the Main Entrance and follow the marked route to the basement stairs.
+        </p>
+
+        <RouteMap
+          fileRef="/data/floorplans/groundfloor.svg"
+          overlay="/data/floorplans/B03-Stairs.svg"
+        />
+      </section>
+
+      <section>
+        <h2>2. Stairs to room B03</h2>
+        <p>
+          Go downstairs, then follow the basement route from the stairs to room B03.
+        </p>
+
+        <RouteMap
+          key={`${route.floorPlan.fileRef}:${route.svgOverlay}`}
+          fileRef={route.floorPlan.fileRef}
+          overlay={route.svgOverlay}
+        />
+      </section>
+    </main>
+  }
+
   return <main className="page-shell directions-page">
-    <Link className="route-link" to={`/lecturers/info/${lecturer.id}`}>← Back to profile</Link>
+    <Link className="route-link" to={`/lecturers/info/${lecturer.id}`}>
+      ← Back to profile
+    </Link>
+
     <h1>Directions to {lecturer.fullName}</h1>
+
     {route && lecturer.office && <p className="page-intro" id="route-description">
-      {route.floorPlan.buildingName} · {route.floorPlan.floorLevel === 0 ? 'Ground floor' : route.floorPlan.floorLevel === -1 ? 'Basement' : `Floor ${route.floorPlan.floorLevel}`} · Room {lecturer.office.roomNumber}<br />
-      From {route.entrancePoint} to room {lecturer.office.roomNumber}. Follow the route symbols to the office pin.
+      {route.floorPlan.buildingName} · {
+        route.floorPlan.floorLevel === 0
+          ? 'Ground floor'
+          : route.floorPlan.floorLevel === -1
+            ? 'Basement'
+            : `Floor ${route.floorPlan.floorLevel}`
+      } · Room {lecturer.office.roomNumber}<br />
+
+      From {route.entrancePoint} to room {lecturer.office.roomNumber}.
+      Follow the route symbols to the office pin.
     </p>}
+
     {route?.svgOverlay && lecturer.office
-      ? <RouteMap key={`${route.floorPlan.fileRef}:${route.svgOverlay}`} fileRef={route.floorPlan.fileRef} overlay={route.svgOverlay} />
-      : <p className="status-message" role="status">Directions are not available for this office yet.</p>}
+      ? <RouteMap
+          key={`${route.floorPlan.fileRef}:${route.svgOverlay}`}
+          fileRef={route.floorPlan.fileRef}
+          overlay={route.svgOverlay}
+        />
+      : <p className="status-message" role="status">
+          Directions are not available for this office yet.
+        </p>}
   </main>
 }
 
@@ -79,13 +144,13 @@ export function RouteMap({ fileRef, overlay, compact = false }: { fileRef: strin
     const urls: string[] = []
     async function load() {
       try {
-        const overlaySource = overlay.startsWith('/api/files/routes/')
-          ? await (async () => {
+        const overlaySource = overlay.trim().startsWith('<svg')
+          ? overlay
+          : await (async () => {
               const response = await fetch(overlay, { signal: controller.signal })
               if (!response.ok) throw new Error('The route could not be loaded.')
               return response.text()
             })()
-          : overlay
         const routeSvg = readSvg(overlaySource)
         const response = await fetch(fileRef, { signal: controller.signal })
         if (!response.ok) throw new Error('The floor plan could not be loaded.')
