@@ -332,6 +332,8 @@ function LecturerEdit() {
       <Link className="route-link" to="/lecturers">← Back to lecturers</Link>
       <form onSubmit={handleSaveDetails}>
         <section className="rounded-[5px] border border-[#ece7ed] bg-white p-4 shadow-sm">
+          
+          <h1 className="font-bold text-[#4b145f] mb-8">Edit lecturer</h1>
           <div className="mb-4 flex flex-col items-center gap-2">
             <label className={`relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[#e2dce4] bg-[#f3edf5] text-3xl font-semibold text-[#4b145f] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#4b145f] ${isSavingPhoto ? 'opacity-60' : ''}`}>
               {lecturer.photoUrl ? <img className="h-full w-full object-cover" src={lecturer.photoUrl} alt="" /> : fullName.trim().charAt(0).toUpperCase()}
@@ -341,7 +343,6 @@ function LecturerEdit() {
             {photoMessage && <p className="status-message status-message--success" role="status">{photoMessage}</p>}
             {photoError && <p className="status-message status-message--error" role="alert">{photoError}</p>}
           </div>
-          <h1 className="font-bold text-[#4b145f]">Edit lecturer</h1>
           <div className="mt-4 grid gap-3">
             <label className="search-field">
               <span>Full name</span>
