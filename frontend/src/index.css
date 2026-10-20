@@ -637,6 +637,26 @@ h1 {
   font-size: 0.9rem;
 }
 
+.admin-menu {
+  display: grid;
+  gap: .85rem;
+}
+
+.admin-menu__link {
+  gap: .5rem;
+}
+
+.admin-menu__link svg {
+  color: var(--theme-accent);
+  font-size: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .admin-menu {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
 .status-message {
   margin: 0;
   padding: 1rem;
@@ -1048,10 +1068,6 @@ h1 {
 .timetable-edit {
   display: grid;
   gap: 1rem;
-}
-
-.timetable-edit button {
-  justify-self: start;
 }
 
 .timetable-page h1 {

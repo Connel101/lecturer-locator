@@ -1,5 +1,5 @@
 // Check the file signature rather than trusting the browser's content type.
-export function isValidTimetableImage(bytes: unknown, contentType: string): bytes is Buffer {
+export function isValidImageUpload(bytes: unknown, contentType: string): bytes is Buffer {
   if (!Buffer.isBuffer(bytes) || bytes.length < 12 || bytes.length > 4 * 1024 * 1024) return false;
   switch (contentType) {
     case "image/png":

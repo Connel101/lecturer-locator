@@ -1,6 +1,6 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faBars, faBuildingColumns, faCamera, faUser } from '@fortawesome/free-solid-svg-icons'
+import { faBars, faBuildingColumns, faCamera, faUser, faUserGear } from '@fortawesome/free-solid-svg-icons'
 import { Link, NavLink } from 'react-router-dom'
 import { authClient } from "./lib/auth-client";
 import { usePwaInstall } from "./hooks/usePwaInstall";
@@ -23,6 +23,7 @@ function Navbar() {
   const [menu, setMenu] = useState(false)
   const { data: session } = authClient.useSession();
   const [usermenu, setUserMenu] = useState(false)
+
   const [showIosInstructions, setShowIosInstructions] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [showAppearance, setShowAppearance] = useState(false)
@@ -32,8 +33,34 @@ function Navbar() {
   const showInstallOption = !isInstalled && (installPrompt !== null || isIos())
 
   const canInstall = !isInstalled && (installPrompt !== null || isIos())
+  const userMenuRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
+        setUserMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
-  
+  useEffect(() => {
+  function handleClickOutside(event: MouseEvent) {
+    if (
+      menuRef.current &&
+      !menuRef.current.contains(event.target as Node)
+    ) {
+      setMenu(false)
+    }
+  }
+
+  document.addEventListener('mousedown', handleClickOutside)
+  return () => document.removeEventListener('mousedown', handleClickOutside)
+}, [])
 
   const installMenuItem = canInstall && (
     <button
@@ -69,15 +96,22 @@ function Navbar() {
   </button>
 )}
       <nav className="top-nav" aria-label="Main navigation">
-        <div className="top-nav__brand">
-          <button type="button" onClick={() => {setMenu(!menu); setUserMenu(false);}} className="top-nav__icon-button" aria-label="Open navigation menu" aria-expanded={menu}>
+        <div className="top-nav__brand" ref={menuRef}>
+          <button type="button" onClick={() => { setMenu((open) => !open); setUserMenu(false); }} className="top-nav__icon-button" aria-label="Toggle navigation menu" aria-expanded={menu}>
             <FontAwesomeIcon icon={faBars} />
           </button>
           <span>LecturerLocator</span>
+          {menu && (
+            <div className="top-nav__menu">
+              {session && <Link to="/admin" onClick={() => setMenu(false)}>Admin menu</Link>}
+              <Link to="/directory" onClick={() => setMenu(false)}>Directory</Link>
+            </div>
+          )}
         </div>
 
-        
-        <button ref={accountButton} type="button" onClick={() => {setUserMenu(!usermenu); setMenu(false);}} className="top-nav__icon-button" aria-label="Account menu" aria-expanded={usermenu}><FontAwesomeIcon icon={faUser} /></button>
+
+        <div className="top-user__container" ref={userMenuRef}>
+        <button ref={accountButton} type="button" onClick={() => { setUserMenu((open) => !open); setMenu(false); }} className="top-nav__icon-button" aria-label="Account menu" aria-expanded={usermenu}><FontAwesomeIcon icon={faUser} /></button>
         {usermenu && (
           <div className="top-user__menu">
             {session
@@ -96,20 +130,7 @@ function Navbar() {
             }}>Sign Out</button>}
           </div>
         )}
-
-        {menu && !session && (
-          <div className="top-nav__menu">
-            <Link to="/directory" onClick={() => setMenu(false)}>Directory</Link>
-          </div>
-        )}
-        {menu && session && (
-          <div className="top-nav__menu">
-            <Link to="/lecturers" onClick={() => setMenu(false)}>Lecturers</Link>
-            <Link to="/buildings" onClick={() => setMenu(false)}>Buildings</Link>
-            <Link to="/directory" onClick={() => setMenu(false)}>Directory</Link>
-            
-          </div>
-        )}
+        </div>
       </nav>
 
       {showAppearance && <AppearanceDialog theme={theme}
@@ -157,7 +178,13 @@ function Navbar() {
           <span className="mobile-nav__scan-button"><FontAwesomeIcon icon={faCamera} /></span>
           <span>Scan</span>
         </NavLink>
-        
+        {session && (
+          <NavLink to="/admin" className={tabClassName}>
+            <FontAwesomeIcon icon={faUserGear} />
+            <span>Admin</span>
+          </NavLink>
+        )}
+
       </nav>
     </>
   )

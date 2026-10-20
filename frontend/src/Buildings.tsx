@@ -1,8 +1,7 @@
 import { useEffect, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faPen, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { Link, useSearchParams } from "react-router-dom";
-import { RouteMap } from "./RouteDirections";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
 
 interface FloorPlan {
   id: number;
@@ -76,6 +75,7 @@ async function uploadSvg(file: File, kind: "floor-plans" | "routes"): Promise<st
 
 function Buildings() {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const requestedSection = searchParams.get("section");
   const activeSection = requestedSection === "offices" || requestedSection === "routes"
     ? requestedSection
@@ -123,18 +123,6 @@ function Buildings() {
   const [officeDeleteError, setOfficeDeleteError] = useState("");
 
   const [routeOfficeId, setRouteOfficeId] = useState("");
-  const [routeEntrancePoint, setRouteEntrancePoint] = useState("");
-  const [routeFile, setRouteFile] = useState<File | null>(null);
-  const [routeSaving, setRouteSaving] = useState(false);
-  const [routeError, setRouteError] = useState("");
-
-  const [editingRouteId, setEditingRouteId] = useState<number | null>(null);
-  const [editRouteOfficeId, setEditRouteOfficeId] = useState("");
-  const [editRouteEntrancePoint, setEditRouteEntrancePoint] = useState("");
-  const [editRouteFile, setEditRouteFile] = useState<File | null>(null);
-  const [routeUpdating, setRouteUpdating] = useState(false);
-  const [routeEditError, setRouteEditError] = useState("");
-
   const [deletingRouteId, setDeletingRouteId] = useState<number | null>(null);
   const [routeDeleteError, setRouteDeleteError] = useState("");
 
@@ -596,186 +584,6 @@ function Buildings() {
     }
   }
 
-  async function handleCreateRoute(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const form = event.currentTarget;
-
-    const selectedOffice = offices.find(
-      (office) => office.id === Number(routeOfficeId),
-    );
-
-    if (!selectedOffice) {
-      setRouteError("Select a valid office.");
-      return;
-    }
-    if (!routeFile) { setRouteError("Choose a route SVG file."); return; }
-
-    setRouteSaving(true);
-    setRouteError("");
-
-    try {
-      const svgOverlay = await uploadSvg(routeFile, "routes");
-      const response = await fetch("/api/admin/routes", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          officeId: Number(routeOfficeId),
-          entrancePoint: routeEntrancePoint,
-          svgOverlay,
-        }),
-      });
-
-      if (!response.ok) {
-        let message = `Request failed with status ${response.status}.`;
-
-        try {
-          const data = (await response.json()) as ApiErrorResponse;
-
-          if (data.error?.message) {
-            message = data.error.message;
-          }
-        } catch {
-          // Keep the fallback message if the response is not JSON.
-        }
-
-        throw new Error(message);
-      }
-
-      const created = (await response.json()) as {
-        id: number;
-        officeId: number;
-        entrancePoint: string;
-        svgOverlay: string | null;
-      };
-
-      const createdRoute: ManagedRoute = {
-        id: created.id,
-        officeId: created.officeId,
-        entrancePoint: created.entrancePoint,
-        svgOverlay: created.svgOverlay,
-        roomNumber: selectedOffice.roomNumber,
-        floorPlanId: selectedOffice.floorPlanId,
-        buildingName: selectedOffice.buildingName,
-        floorLevel: selectedOffice.floorLevel,
-      };
-
-      setRoutes((current) => [...current, createdRoute]);
-      setRouteOfficeId("");
-      setRouteEntrancePoint("");
-      setRouteFile(null);
-      form.reset();
-    } catch (err) {
-      setRouteError(
-        err instanceof Error ? err.message : "Unable to create the route.",
-      );
-    } finally {
-      setRouteSaving(false);
-    }
-  }
-
-  function handleStartEditRoute(route: ManagedRoute) {
-    setEditingRouteId(route.id);
-    setEditRouteOfficeId(String(route.officeId));
-    setEditRouteEntrancePoint(route.entrancePoint);
-    setEditRouteFile(null);
-    setRouteEditError("");
-  }
-
-  function handleCancelEditRoute() {
-    setEditingRouteId(null);
-    setEditRouteOfficeId("");
-    setEditRouteEntrancePoint("");
-    setEditRouteFile(null);
-    setRouteEditError("");
-  }
-
-  async function handleUpdateRoute(event: React.FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    if (editingRouteId === null) {
-      return;
-    }
-
-    const selectedOffice = offices.find(
-      (office) => office.id === Number(editRouteOfficeId),
-    );
-
-    if (!selectedOffice) {
-      setRouteEditError("Select a valid office.");
-      return;
-    }
-
-    setRouteUpdating(true);
-    setRouteEditError("");
-
-    try {
-      const svgOverlay = editRouteFile
-        ? await uploadSvg(editRouteFile, "routes")
-        : routes.find((route) => route.id === editingRouteId)?.svgOverlay ?? null;
-      const response = await fetch(`/api/admin/routes/${editingRouteId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          officeId: Number(editRouteOfficeId),
-          entrancePoint: editRouteEntrancePoint,
-          svgOverlay,
-        }),
-      });
-
-      if (!response.ok) {
-        let message = `Request failed with status ${response.status}.`;
-
-        try {
-          const data = (await response.json()) as ApiErrorResponse;
-
-          if (data.error?.message) {
-            message = data.error.message;
-          }
-        } catch {
-          // Keep the fallback message if the response is not JSON.
-        }
-
-        throw new Error(message);
-      }
-
-      const updated = (await response.json()) as {
-        id: number;
-        officeId: number;
-        entrancePoint: string;
-        svgOverlay: string | null;
-      };
-
-      const updatedRoute: ManagedRoute = {
-        id: updated.id,
-        officeId: updated.officeId,
-        entrancePoint: updated.entrancePoint,
-        svgOverlay: updated.svgOverlay,
-        roomNumber: selectedOffice.roomNumber,
-        floorPlanId: selectedOffice.floorPlanId,
-        buildingName: selectedOffice.buildingName,
-        floorLevel: selectedOffice.floorLevel,
-      };
-
-      setRoutes((current) =>
-        current.map((route) =>
-          route.id === updated.id ? updatedRoute : route,
-        ),
-      );
-
-      handleCancelEditRoute();
-    } catch (err) {
-      setRouteEditError(
-        err instanceof Error ? err.message : "Unable to update the route.",
-      );
-    } finally {
-      setRouteUpdating(false);
-    }
-  }
-
   async function handleDeleteRoute(route: ManagedRoute) {
     const confirmed = window.confirm(
       `Delete the predefined route for office ${route.roomNumber}?`,
@@ -811,9 +619,6 @@ function Buildings() {
 
       setRoutes((current) => current.filter((item) => item.id !== route.id));
 
-      if (editingRouteId === route.id) {
-        handleCancelEditRoute();
-      }
     } catch (err) {
       setRouteDeleteError(
         err instanceof Error ? err.message : "Unable to delete the route.",
@@ -825,6 +630,7 @@ function Buildings() {
 
   return (
     <main className="page-shell location-management">
+      <Link className="route-link" to="/admin">← Back to admin menu</Link>
       <p className="eyebrow">Administration</p>
       <h1>Location management</h1>
       <p className="page-intro">
@@ -1195,69 +1001,21 @@ function Buildings() {
 
           {activeSection === "routes" && <section className="search-results">
             <h2>Predefined routes</h2>
-            <p className="status-message location-section-intro">Add an office first, then upload its SVG route overlay. The overlay must use the same viewBox as its floor plan.</p>
+            <p className="status-message location-section-intro">Choose an office, then draw its route directly on the floor plan.</p>
 
-            <form className="lecturer-list" onSubmit={handleCreateRoute}>
+            <form className="lecturer-list" onSubmit={(event) => { event.preventDefault(); navigate(`/buildings/routes/new?officeId=${routeOfficeId}`); }}>
               <label className="search-field">
                 Office
-                <select
-                  value={routeOfficeId}
-                  onChange={(event) => setRouteOfficeId(event.target.value)}
-                  required
-                >
+                <select value={routeOfficeId} onChange={(event) => setRouteOfficeId(event.target.value)} required>
                   <option value="">Select an office</option>
-
-                  {offices
-                    .filter(
-                      (office) =>
-                        !routes.some((route) => route.officeId === office.id),
-                    )
-                    .map((office) => (
-                      <option key={office.id} value={office.id}>
-                        {office.roomNumber} - {office.buildingName},{" "}
-                        {formatFloorLevel(office.floorLevel)}
-                      </option>
-                    ))}
+                  {offices.filter((office) => !routes.some((route) => route.officeId === office.id)).map((office) => (
+                    <option key={office.id} value={office.id}>
+                      {office.roomNumber} - {office.buildingName}, {formatFloorLevel(office.floorLevel)}
+                    </option>
+                  ))}
                 </select>
               </label>
-
-              <label className="search-field">
-                Entrance
-                <input
-                  type="text"
-                  value={routeEntrancePoint}
-                  onChange={(event) =>
-                    setRouteEntrancePoint(event.target.value)
-                  }
-                  placeholder="e.g. Main entrance"
-                  required
-                />
-              </label>
-
-              <label className="search-field">
-                Route overlay SVG
-                <input
-                  type="file"
-                  accept=".svg,image/svg+xml"
-                  onChange={(event) => setRouteFile(event.target.files?.[0] ?? null)}
-                  required
-                />
-              </label>
-              <p className="status-message">Export the route overlay as an SVG from the route editor. Maximum 4 MB.</p>
-
-              <button
-                className="primary-button"
-                type="submit"
-                disabled={routeSaving}
-              >
-                {routeSaving ? "Adding route..." : "Add route"}
-              </button>
-
-              {routeError && (
-                <p className="status-message status-message--error">
-                  {routeError}
-                </p>
-              )}
+              <button className="primary-button" type="submit" disabled={!routeOfficeId}>Create route in editor</button>
             </form>
 
             {routes.length === 0 ? (
@@ -1271,141 +1029,21 @@ function Buildings() {
                     className="lecturer-card admin-management-card"
                     key={route.id}
                   >
-                    {editingRouteId === route.id ? (
-                      <form
-                        onSubmit={handleUpdateRoute}
-                        className="lecturer-list"
-                      >
-                        <label className="search-field">
-                          Office
-                          <select
-                            value={editRouteOfficeId}
-                            onChange={(event) =>
-                              setEditRouteOfficeId(event.target.value)
-                            }
-                            required
-                          >
-                            {offices
-                              .filter(
-                                (office) =>
-                                  office.id === route.officeId ||
-                                  !routes.some(
-                                    (otherRoute) =>
-                                      otherRoute.officeId === office.id &&
-                                      otherRoute.id !== route.id,
-                                  ),
-                              )
-                              .map((office) => (
-                                <option key={office.id} value={office.id}>
-                                  {office.roomNumber} - {office.buildingName},{" "}
-                                  {formatFloorLevel(office.floorLevel)}
-                                </option>
-                              ))}
-                          </select>
-                        </label>
+                    <div className="admin-card-details">
+                      <strong>{route.roomNumber}</strong>
+                      <span>{route.buildingName}, {formatFloorLevel(route.floorLevel)}</span>
+                      <span>Entrance: {route.entrancePoint}</span>
+                      <span>SVG overlay: {route.svgOverlay ? "Configured" : "Not configured"}</span>
+                    </div>
 
-                        <label className="search-field">
-                          Entrance
-                          <input
-                            type="text"
-                            value={editRouteEntrancePoint}
-                            onChange={(event) =>
-                              setEditRouteEntrancePoint(event.target.value)
-                            }
-                            required
-                          />
-                        </label>
-
-                        <div className="current-upload">
-                          <strong>Current route overlay</strong>
-                          {route.svgOverlay && <RouteMap
-                            fileRef={floorPlans.find((plan) => plan.id === route.floorPlanId)?.fileRef ?? ""}
-                            overlay={route.svgOverlay}
-                            compact
-                          />}
-                          {route.svgOverlay?.startsWith('/api/files/routes/')
-                            ? <a href={route.svgOverlay} target="_blank" rel="noreferrer">Open current SVG</a>
-                            : <span>{route.svgOverlay ? "Saved with this route" : "No overlay uploaded"}</span>}
-                        </div>
-                        <label className="search-field">
-                          Replace route overlay SVG (optional)
-                          <span className="replacement-picker">
-                            <input
-                              className="replacement-picker__input"
-                              type="file"
-                              accept=".svg,image/svg+xml"
-                              onChange={(event) => setEditRouteFile(event.target.files?.[0] ?? null)}
-                            />
-                            <span className="replacement-picker__button">Choose replacement</span>
-                            <span>{editRouteFile?.name ?? "Keep current file"}</span>
-                          </span>
-                        </label>
-
-                        <button
-                          className="primary-button"
-                          type="submit"
-                          disabled={routeUpdating}
-                        >
-                          {routeUpdating ? "Saving..." : "Save"}
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={handleCancelEditRoute}
-                          disabled={routeUpdating}
-                        >
-                          Cancel
-                        </button>
-
-                        {routeEditError && (
-                          <p className="status-message status-message--error">
-                            {routeEditError}
-                          </p>
-                        )}
-                      </form>
-                    ) : (
-                      <>
-                        <div className="admin-card-details">
-                          <strong>{route.roomNumber}</strong>
-                          <span>
-                            {route.buildingName},{" "}
-                            {formatFloorLevel(route.floorLevel)}
-                          </span>
-                          <span>Entrance: {route.entrancePoint}</span>
-                          <span>
-                            SVG overlay:{" "}
-                            {route.svgOverlay ? "Configured" : "Not configured"}
-                          </span>
-                        </div>
-
-                        <div className="admin-card-actions">
-                          <button
-                            type="button"
-                            className="admin-action-button"
-                            onClick={() => handleStartEditRoute(route)}
-                            disabled={deletingRouteId === route.id}
-                          >
-                            <FontAwesomeIcon icon={faPen} aria-hidden="true" />
-                            Edit
-                          </button>
-
-                          <button
-                            type="button"
-                            className="admin-action-button admin-action-button--danger"
-                            onClick={() => void handleDeleteRoute(route)}
-                            disabled={deletingRouteId === route.id}
-                          >
-                            <FontAwesomeIcon
-                              icon={faTrash}
-                              aria-hidden="true"
-                            />
-                            {deletingRouteId === route.id
-                              ? "Deleting..."
-                              : "Delete"}
-                          </button>
-                        </div>
-                      </>
-                    )}
+                    <div className="admin-card-actions">
+                      <button type="button" className="admin-action-button" onClick={() => navigate(`/buildings/routes/${route.id}/edit`)} disabled={deletingRouteId === route.id}>
+                        <FontAwesomeIcon icon={faPen} aria-hidden="true" /> Edit
+                      </button>
+                      <button type="button" className="admin-action-button admin-action-button--danger" onClick={() => void handleDeleteRoute(route)} disabled={deletingRouteId === route.id}>
+                        <FontAwesomeIcon icon={faTrash} aria-hidden="true" /> {deletingRouteId === route.id ? "Deleting..." : "Delete"}
+                      </button>
+                    </div>
                   </article>
                 ))}
               </div>

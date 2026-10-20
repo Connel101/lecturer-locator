@@ -1,0 +1,55 @@
+.route-editor-page { max-width: 1600px; margin: 0 auto; padding: 1.5rem 1.5rem 6rem; }
+.route-editor-header { display: flex; align-items: end; justify-content: space-between; gap: 1rem; margin-bottom: 1.5rem; }
+.route-editor-header h1 { font-size: clamp(2rem, 4vw, 3rem); }
+.route-editor-quiet, .route-editor-sidebar button:not(.primary-button), .route-editor-toolbar button, .route-editor-steps button { border: 1px solid #d9cfde; background: #fff; color: #3c1053; border-radius: .65rem; padding: .65rem .8rem; font-weight: 700; cursor: pointer; }
+.route-editor-quiet:hover, .route-editor-sidebar button:not(.primary-button):hover:not(:disabled), .route-editor-toolbar button:hover:not(:disabled) { background: #f4edf7; }
+.route-editor-layout { display: grid; grid-template-columns: minmax(280px, 330px) minmax(0, 1fr); gap: 1rem; align-items: start; }
+.route-editor-sidebar, .route-editor-workspace { background: #fff; border: 1px solid #e6dfea; border-radius: 1rem; box-shadow: 0 10px 30px rgba(60, 16, 83, .05); }
+.route-editor-sidebar { padding: 1.2rem; }
+.route-editor-section + .route-editor-section { border-top: 1px solid #e6dfea; margin-top: 1.3rem; padding-top: 1.3rem; }
+.route-editor-section h2 { margin: 0 0 1rem; color: #3c1053; font-size: 1rem; }
+.route-editor-section label { display: block; margin: 1rem 0; color: #4d3a57; font-size: .85rem; font-weight: 700; }
+.route-editor-section label input:not([type=range]):not([type=color]), .route-editor-section select { display: block; width: 100%; margin-top: .45rem; padding: .75rem; border: 1px solid #d9cfde; border-radius: .65rem; background: #fff; color: #261632; }
+.route-editor-section input[type=range] { display: block; width: 100%; margin-top: .8rem; accent-color: #6f248a; }
+.route-editor-section input[type=color] { display: block; width: 100%; height: 2.6rem; margin-top: .4rem; border: 1px solid #d9cfde; border-radius: .65rem; background: #fff; }
+.route-editor-section output { float: right; }
+.route-editor-hint { color: #716777; font-size: .8rem; line-height: 1.5; }
+.route-editor-segmented, .route-editor-row { display: flex; gap: .45rem; }
+.route-editor-segmented button, .route-editor-row button { flex: 1; }
+.route-editor-segmented button[aria-pressed=true] { background: #efe2f5 !important; border-color: #a96bc4 !important; }
+.route-editor-sidebar button:disabled, .route-editor-toolbar button:disabled { opacity: .45; cursor: default; }
+.route-editor-next { width: 100%; margin-top: .5rem; }
+.route-editor-section .primary-button { width: 100%; margin-top: .5rem; }
+.route-editor-workspace { min-width: 0; height: min(760px, calc(100dvh - 10rem)); min-height: 480px; padding: 1rem; display: flex; flex-direction: column; }
+.route-editor-toolbar { display: flex; align-items: center; justify-content: space-between; gap: .5rem; padding-bottom: .8rem; color: #3c1053; font-size: .85rem; }
+.route-editor-toolbar strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.route-editor-toolbar > div { display: flex; align-items: center; gap: .35rem; }
+.route-editor-toolbar button { min-width: 2rem; padding: .4rem; }
+.route-editor-toolbar output { min-width: 2.8rem; text-align: center; }
+.route-editor-viewport { flex: 1; min-height: 0; overflow: auto; border: 1px solid #ddd3e2; border-radius: .75rem; background: #f2edf5; background-image: radial-gradient(#dfd1e8 .8px, transparent .8px); background-size: 18px 18px; }
+.route-editor-stage { position: relative; margin: 24px; background: #fff; box-shadow: 0 6px 25px #3c10531c; }
+.route-editor-stage img { display: block; width: 100%; height: 100%; pointer-events: none; }
+.route-editor-stage svg { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+.route-editor-stage svg [data-index], .route-editor-stage svg [data-pin] { cursor: grab; }
+.route-editor-empty { min-height: 100%; display: grid; place-items: center; padding: 2rem; color: #716777; text-align: center; }
+.route-editor-status { padding-top: .7rem; color: #716777; font-size: .8rem; }
+.route-editor-steps { display: none; }
+.route-editor-notice { padding: .8rem; border-radius: .65rem; background: #fff5dd; color: #654614; font-size: .82rem; line-height: 1.45; }
+.route-editor-error { max-width: 100%; margin: 0 0 1rem; }
+@media (max-width: 760px) {
+  .route-editor-page { padding: 1rem 1rem 6rem; }
+  .route-editor-header { align-items: start; }
+  .route-editor-quiet { white-space: nowrap; }
+  .route-editor-layout { display: flex; flex-direction: column; }
+  .route-editor-steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: .4rem; width: 100%; }
+  .route-editor-steps button { font-size: .8rem; }
+  .route-editor-steps button.active { background: #3c1053; color: #fff; border-color: #3c1053; }
+  .route-editor-steps button:disabled { opacity: .45; cursor: default; }
+  .route-editor-sidebar, .route-editor-workspace { width: 100%; }
+  .route-editor-sidebar { padding: 1rem; }
+  .route-editor-section { display: none; }
+  .route-editor-section--active { display: block; }
+  .route-editor-section + .route-editor-section { margin: 0; padding: 0; border: 0; }
+  .route-editor-workspace { height: 58dvh; min-height: 340px; }
+  .route-editor-workspace--setup { display: none; }
+}

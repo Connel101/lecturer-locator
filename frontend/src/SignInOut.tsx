@@ -1,10 +1,7 @@
 import { useState, type FormEvent } from "react";
-import { useNavigate } from "react-router-dom";
 import { authClient } from "./lib/auth-client";
 
 function SignInOut() {
-  const navigate = useNavigate();
-
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
@@ -23,7 +20,7 @@ function SignInOut() {
         return;
       }
 
-      navigate("/lecturers");
+      window.location.replace("/admin");
     } catch {
       setErrorMessage("Unable to reach the sign-in service. Make sure the backend is running.");
     } finally {

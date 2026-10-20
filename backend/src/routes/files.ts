@@ -28,9 +28,9 @@ filesRouter.post("/:kind", requireAdmin, express.raw({ type: "image/svg+xml", li
 
 filesRouter.get("/:kind/:name", async (req, res) => {
   const { kind, name } = req.params;
-  const timetable = kind === "timetables";
-  const pattern = timetable ? /^[0-9a-f-]{36}\.(png|jpg|webp)$/ : /^[0-9a-f-]{36}\.svg$/;
-  if (typeof kind !== "string" || (!timetable && !kinds.has(kind as UploadKind)) || typeof name !== "string" || !pattern.test(name)) {
+  const image = kind === "timetables" || kind === "profile-photos";
+  const pattern = image ? /^[0-9a-f-]{36}\.(png|jpg|webp)$/ : /^[0-9a-f-]{36}\.svg$/;
+  if (typeof kind !== "string" || (!image && !kinds.has(kind as UploadKind)) || typeof name !== "string" || !pattern.test(name)) {
     res.sendStatus(404);
     return;
   }

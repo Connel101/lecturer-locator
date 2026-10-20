@@ -7,7 +7,7 @@ import { uploadLecturerTimetable } from "../src/controllers/admin-lecturers.ts";
 import { getLecturerProfile } from "../src/controllers/lecturers.ts";
 import { db } from "../src/lib/db.ts";
 import { loadFile, saveFile } from "../src/lib/file-storage.ts";
-import { isValidTimetableImage } from "../src/lib/timetable-image.ts";
+import { isValidImageUpload } from "../src/lib/image-upload.ts";
 
 const png = await readFile(new URL("../../frontend/public/icon-192.png", import.meta.url));
 const lecturerId = "d7ac9ed3-b706-40bf-9572-cdaa1f018791";
@@ -22,14 +22,14 @@ function mockResponse() {
 }
 
 test("timetable images require a supported content type, matching signature and size", () => {
-  assert.equal(isValidTimetableImage(png, "image/png"), true);
-  assert.equal(isValidTimetableImage(png, "image/jpeg"), false);
-  assert.equal(isValidTimetableImage(Buffer.from('<svg onload="alert(1)"></svg>'), "image/png"), false);
-  assert.equal(isValidTimetableImage(png, "image/svg+xml"), false);
-  assert.equal(isValidTimetableImage(undefined, "image/png"), false);
-  assert.equal(isValidTimetableImage(Buffer.alloc(4 * 1024 * 1024 + 1), "image/png"), false);
-  assert.equal(isValidTimetableImage(Buffer.from([255, 216, 255, ...Array(20).fill(0)]), "image/jpeg"), true);
-  assert.equal(isValidTimetableImage(Buffer.from("RIFF0000WEBP0000"), "image/webp"), true);
+  assert.equal(isValidImageUpload(png, "image/png"), true);
+  assert.equal(isValidImageUpload(png, "image/jpeg"), false);
+  assert.equal(isValidImageUpload(Buffer.from('<svg onload="alert(1)"></svg>'), "image/png"), false);
+  assert.equal(isValidImageUpload(png, "image/svg+xml"), false);
+  assert.equal(isValidImageUpload(undefined, "image/png"), false);
+  assert.equal(isValidImageUpload(Buffer.alloc(4 * 1024 * 1024 + 1), "image/png"), false);
+  assert.equal(isValidImageUpload(Buffer.from([255, 216, 255, ...Array(20).fill(0)]), "image/jpeg"), true);
+  assert.equal(isValidImageUpload(Buffer.from("RIFF0000WEBP0000"), "image/webp"), true);
 });
 
 test("production stores timetables under their own S3 prefix with the image content type", async () => {

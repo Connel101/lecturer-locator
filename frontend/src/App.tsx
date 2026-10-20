@@ -8,12 +8,14 @@ import Directory from "./Directory"
 import SignInOut from "./SignInOut"
 import Lecturers from "./Lecturers"
 import Buildings from "./Buildings"
+import RouteEditor from "./RouteEditor"
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome"
 import { faLocationDot } from "@fortawesome/free-solid-svg-icons"
 import LecturersInformation from './LecturersInformation'
 import ProtectedRoute from "./ProtectedRoute";
 import LecturerEdit from './LecturerEdit'
 import LecturerCreate from './LecturerCreate'
+import AdminMenu from './AdminMenu'
 
 
 function Map() {
@@ -46,8 +48,11 @@ function App() {
       <Route path="timetable" element={<LecturerTimetable />} /></Route>
 
       <Route element={<ProtectedRoute />}>
+      <Route path="/admin" element={<AdminMenu />} />
       <Route path="/lecturers" element={<Lecturers />} />
       <Route path="/buildings" element={<Buildings />} />
+      <Route path="/buildings/routes/new" element={<RouteEditor />} />
+      <Route path="/buildings/routes/:routeId/edit" element={<RouteEditor />} />
       <Route
       path="/lecturer/edit/:id"
       element={<LecturerProfileLayout />}>

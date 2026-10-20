@@ -44,7 +44,6 @@ function LecturersInformation() {
     <section className="overflow-hidden rounded-[5px] border border-[color:var(--theme-border)] bg-[var(--theme-surface)] shadow-sm md:col-span-1 md:row-span-2">
       <div className="flex flex-col items-center px-4 pb-3 pt-4">
 
-           {/* TODO: Connect profile photos when the API provides photoUrl. */}
            {photoUrl && photoUrl !== failedPhotoUrl && (
              <div className="mb-2 h-[82px] w-[70px] overflow-hidden rounded-[4px] border border-[color:var(--theme-border)] bg-[var(--theme-surface-muted)]">
                <img
