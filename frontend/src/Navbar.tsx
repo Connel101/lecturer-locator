@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faBuildingColumns, faCamera, faUser, faUserGear } from '@fortawesome/free-solid-svg-icons'
 import { Link, NavLink } from 'react-router-dom'
@@ -20,14 +20,41 @@ function Navbar() {
   const [menu, setMenu] = useState(false)
   const { data: session } = authClient.useSession();
   const [usermenu, setUserMenu] = useState(false)
+  
   const [showIosInstructions, setShowIosInstructions] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
 
   const showInstallOption = !isInstalled && (installPrompt !== null || isIos())
 
   const canInstall = !isInstalled && (installPrompt !== null || isIos())
+  const userMenuRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
+        setUserMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
-  
+  useEffect(() => {
+  function handleClickOutside(event: MouseEvent) {
+    if (
+      menuRef.current &&
+      !menuRef.current.contains(event.target as Node)
+    ) {
+      setMenu(false)
+    }
+  }
+
+  document.addEventListener('mousedown', handleClickOutside)
+  return () => document.removeEventListener('mousedown', handleClickOutside)
+}, [])
 
   const installMenuItem = canInstall && (
     <button
@@ -63,17 +90,23 @@ function Navbar() {
   </button>
 )}
       <nav className="top-nav" aria-label="Main navigation">
-        <div className="top-nav__brand">
-          <button type="button" onClick={() => {setMenu(!menu); setUserMenu(false);}} className="top-nav__icon-button" aria-label="Open navigation menu" aria-expanded={menu}>
+        <div className="top-nav__brand" ref={menuRef}>
+          <button type="button" onClick={() => { setMenu((open) => !open); setUserMenu(false); }} className="top-nav__icon-button" aria-label="Toggle navigation menu" aria-expanded={menu}>
             <FontAwesomeIcon icon={faBars} />
           </button>
           <span>LecturerLocator</span>
+          {menu && (
+            <div className="top-nav__menu">
+              {session && <Link to="/admin" onClick={() => setMenu(false)}>Admin menu</Link>}
+              <Link to="/directory" onClick={() => setMenu(false)}>Directory</Link>
+            </div>
+          )}
         </div>
 
-        
-        <button type="button" onClick={() => {setUserMenu(!usermenu); setMenu(false);}} className="top-nav__icon-button" aria-label="Account menu" aria-expanded={usermenu}><FontAwesomeIcon icon={faUser} /></button>
+        <div className="top-user__container" ref={userMenuRef}>
+        <button type="button" onClick={() => { setUserMenu((open) => !open); setMenu(false); }} className="top-nav__icon-button" aria-label="Account menu" aria-expanded={usermenu}><FontAwesomeIcon icon={faUser} /></button>
         {usermenu && session && (
-          <div className="top-user__menu">
+          <div className="top-user__menu" >
             <Link to="/" onClick={() => setUserMenu(false)}>Profile</Link>
             {installMenuItem}
             <button type="button" className="top-user__menu-item" onClick={() => { setUserMenu(false); setShowHelp(true); }}>
@@ -101,13 +134,7 @@ function Navbar() {
             </button>
           </div>
         )}
-
-        {menu && (
-          <div className="top-nav__menu">
-            {session && <Link to="/admin" onClick={() => setMenu(false)}>Admin menu</Link>}
-            <Link to="/directory" onClick={() => setMenu(false)}>Directory</Link>
-          </div>
-        )}
+        </div>
       </nav>
 
       {showIosInstructions && (
