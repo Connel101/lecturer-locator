@@ -133,7 +133,7 @@ Returns a lecturer using their permanent ID.
       "fileRef": "/data/floorplans/natural-sciences-ground.svg"
     },
     "entrancePoint": "Main Entrance",
-    "svgOverlay": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 600 400\"><!-- complete exported artwork and metadata --></svg>"
+    "svgOverlay": "/api/files/routes/123e4567-e89b-42d3-a456-426614174000.svg"
   }
 }
 ```
@@ -148,7 +148,7 @@ omitted when unavailable.
 
 If a lecturer does not have an assigned office, `office` is `null`.
 
-If directions, an entrance point or a floor plan are unavailable, `route` is `null`. Route data is returned with the profile so the frontend does not need to make a second API request when the user chooses to view directions.
+If directions, an entrance point or a floor plan are unavailable, `route` is `null`. Route metadata is returned with the profile. The viewer then loads the floor plan and, for uploaded routes, the overlay file from their references.
 
 ### Profile unavailable — `404 Not Found`
 
@@ -179,15 +179,17 @@ Unexpected errors return `500 Internal Server Error`:
 
 ## Complete route overlays
 
-`route.svgOverlay` is the complete exported SVG document, including footprints/arrows,
-pin, styling, and editor metadata. There is no separate centreline column or API
-field. The centreline remains inside the exported SVG metadata for editor use.
+`route.svgOverlay` contains either an uploaded SVG file reference (such as
+`/api/files/routes/<id>.svg`) or a complete inline SVG document from existing seed
+or legacy data. The built-in editor uploads its SVG and stores the returned
+reference. The SVG contains footprints/arrows, a destination pin, styling, and
+editable drawing metadata. There is no separate centreline column or API field.
 If an overlay is unavailable, the profile returns `route: null`.
 
 The overlay and floor-plan SVG must have matching valid `viewBox` coordinates.
 The viewer renders them as images in a shared frame. The floor plan is loaded from
-`floorPlan.fileRef`; no separate route endpoint is needed. Missing overlays show
-unavailable directions. API request failures and map load failures offer retry.
+`floorPlan.fileRef`. Uploaded overlays are fetched from `route.svgOverlay`, while
+inline SVGs are parsed directly. Missing overlays show unavailable directions. API request failures and map load failures offer retry.
 
 Apply the database migrations, then run the development seed command to populate
 complete overlays from the existing assets. Each run reloads matching route artwork
@@ -387,7 +389,7 @@ Returns route records together with their associated office and floor-plan infor
       "id": 1,
       "officeId": 1,
       "entrancePoint": "Main Entrance",
-      "svgOverlay": "<svg xmlns=\"http://www.w3.org/2000/svg\">...</svg>",
+      "svgOverlay": "/api/files/routes/123e4567-e89b-42d3-a456-426614174000.svg",
       "roomNumber": "G03",
       "floorPlanId": 1,
       "buildingName": "G3",
@@ -411,13 +413,16 @@ Example request:
 {
   "officeId": 1,
   "entrancePoint": "Main Entrance",
-  "svgOverlay": "<svg xmlns=\"http://www.w3.org/2000/svg\">...</svg>"
+  "svgOverlay": "/api/files/routes/123e4567-e89b-42d3-a456-426614174000.svg"
 }
 ```
 
 `officeId` must identify an existing office. `entrancePoint` must be a non-empty text value.
 
-`svgOverlay` may be omitted or set to `null`. When supplied as text, the complete SVG document is stored unchanged so that editor metadata and route artwork are preserved.
+`svgOverlay` may be omitted or set to `null`. Supply the `fileRef` returned by
+`POST /api/files/routes` after uploading the SVG, as the built-in editor does.
+Complete inline SVG documents are also supported. The supplied string is stored
+unchanged; artwork and editor metadata remain in the uploaded or inline SVG.
 
 The MVP supports one route per office. Attempting to create a second route for the same office returns `409 Conflict`:
 
@@ -443,7 +448,7 @@ Example request:
 ```json
 {
   "entrancePoint": "South Entrance",
-  "svgOverlay": "<svg xmlns=\"http://www.w3.org/2000/svg\">...</svg>"
+  "svgOverlay": "/api/files/routes/123e4567-e89b-42d3-a456-426614174000.svg"
 }
 ```
 
@@ -464,7 +469,7 @@ A successful deletion returns `204 No Content`.
 
 ### Upload SVG files
 
-The admin UI sends the selected SVG file as the request body to
+The admin UI sends a floor-plan SVG or the route editor’s generated SVG as the request body to
 `POST /api/files/floor-plans` or `POST /api/files/routes`, with
 `Content-Type: image/svg+xml`. Uploads are limited to 4 MB. A successful upload
 returns `{ "fileRef": "/api/files/<kind>/<id>.svg" }`. Save this reference in
