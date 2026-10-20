@@ -1,9 +1,12 @@
-import { useState, useEffect, useRef } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faBuildingColumns, faCamera, faUser, faUserGear } from '@fortawesome/free-solid-svg-icons'
 import { Link, NavLink } from 'react-router-dom'
 import { authClient } from "./lib/auth-client";
 import { usePwaInstall } from "./hooks/usePwaInstall";
+
+import AppearanceDialog from './AppearanceDialog'
+import { getTheme, setTheme, themeLabels } from './lib/theme'
 
 const tabClassName = ({ isActive }: { isActive: boolean }) =>
   `mobile-nav__item${isActive ? ' mobile-nav__item--active' : ''}`
@@ -20,9 +23,12 @@ function Navbar() {
   const [menu, setMenu] = useState(false)
   const { data: session } = authClient.useSession();
   const [usermenu, setUserMenu] = useState(false)
-  
+
   const [showIosInstructions, setShowIosInstructions] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
+  const [showAppearance, setShowAppearance] = useState(false)
+  const [theme, updateTheme] = useState(getTheme)
+  const accountButton = useRef<HTMLButtonElement>(null)
 
   const showInstallOption = !isInstalled && (installPrompt !== null || isIos())
 
@@ -103,39 +109,33 @@ function Navbar() {
           )}
         </div>
 
-        <div className="top-user__container" ref={userMenuRef}>
-        <button type="button" onClick={() => { setUserMenu((open) => !open); setMenu(false); }} className="top-nav__icon-button" aria-label="Account menu" aria-expanded={usermenu}><FontAwesomeIcon icon={faUser} /></button>
-        {usermenu && session && (
-          <div className="top-user__menu" >
-            <Link to="/" onClick={() => setUserMenu(false)}>Profile</Link>
-            {installMenuItem}
-            <button type="button" className="top-user__menu-item" onClick={() => { setUserMenu(false); setShowHelp(true); }}>
-              Help &amp; feedback
-            </button>
-            <p
-            onClick={async () => {
-              await authClient.signOut();
-              setUserMenu(false);
-              window.location.reload();
-              window.location.href = "/signin";
-            }}
-          >
-            Sign Out
-          </p>
-          </div>
-        )}
 
-        {usermenu && !session && (
+        <div className="top-user__container" ref={userMenuRef}>
+        <button ref={accountButton} type="button" onClick={() => { setUserMenu((open) => !open); setMenu(false); }} className="top-nav__icon-button" aria-label="Account menu" aria-expanded={usermenu}><FontAwesomeIcon icon={faUser} /></button>
+        {usermenu && (
           <div className="top-user__menu">
-            <Link to="/signin" onClick={() => { setUserMenu(false) }}>Sign In</Link>
+            {session
+              ? <Link to="/" onClick={() => setUserMenu(false)}>Profile</Link>
+              : <Link to="/signin" onClick={() => setUserMenu(false)}>Sign In</Link>}
+            <button type="button" className="top-user__menu-item appearance-menu-item" onClick={() => { setUserMenu(false); setShowAppearance(true); }}>
+              <span>Appearance</span><span>{themeLabels[theme]}</span>
+            </button>
             {installMenuItem}
             <button type="button" className="top-user__menu-item" onClick={() => { setUserMenu(false); setShowHelp(true); }}>
               Help &amp; feedback
             </button>
+            {session && <button type="button" className="top-user__menu-item" onClick={async () => {
+              await authClient.signOut();
+              window.location.href = '/signin';
+            }}>Sign Out</button>}
           </div>
         )}
         </div>
       </nav>
+
+      {showAppearance && <AppearanceDialog theme={theme}
+        onChange={(value) => { setTheme(value); updateTheme(value) }}
+        onClose={() => { setShowAppearance(false); accountButton.current?.focus() }} />}
 
       {showIosInstructions && (
         <div className="install-dialog__backdrop" role="presentation" onClick={() => setShowIosInstructions(false)}>
@@ -184,7 +184,7 @@ function Navbar() {
             <span>Admin</span>
           </NavLink>
         )}
-        
+
       </nav>
     </>
   )

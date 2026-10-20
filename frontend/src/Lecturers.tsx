@@ -133,7 +133,7 @@ function Lecturers() {
     <main className="page-shell">
       <Link className="route-link" to="/admin">← Back to admin menu</Link>
           <p className="eyebrow">Administration</p>
-            <h1>Lecturer management</h1>
+            <h1 className="text-[color:var(--theme-heading)]">Lecturer management</h1>
 
       <p className="page-intro">
         View and manage faculty members across all departments.
