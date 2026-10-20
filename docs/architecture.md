@@ -18,7 +18,7 @@ Each floor has an SVG floor plan, and each office may have a predefined route di
 
 The route editor is a protected page in the React app, reached through **Admin menu → Buildings → Routes**. It loads an office’s floor plan, creates an SVG containing route symbols, a destination pin, and editable drawing metadata, then uploads it through the backend. The route record stores the office, entrance name, and SVG overlay reference. The viewer also supports existing inline SVG overlays.
 
-The standalone editor in `tools/route-editor/` is legacy reference material and is not part of this workflow.
+The standalone editor and its GitHub Pages workflow have been removed; the React app contains the supported editor.
 
 ## File Storage
 

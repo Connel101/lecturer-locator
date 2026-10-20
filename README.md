@@ -40,7 +40,6 @@ lecturer-locator/
 │   ├── drizzle/              # Database migrations
 │   └── test/                 # Backend tests
 ├── docs/                     # API, architecture, requirements, and images
-├── tools/route-editor/       # Legacy standalone editor; superseded by the app
 ├── docker-compose.yml        # Local PostgreSQL database
 └── vercel.json               # Deployment configuration
 ```
@@ -133,7 +132,7 @@ The route editor is part of the main app. **The standalone Footpath tool and its
 
 The app uploads the SVG overlay and saves its reference against the office’s route. Saved routes appear on lecturer profiles under directions. To update one, choose **Edit** in the Routes list. Older overlays without editable drawing metadata may need to be redrawn.
 
-The original files remain in [tools/route-editor](tools/route-editor/README.md) for historical reference; they are not required to run the app. No separate export or GitHub Pages deployment is needed.
+The standalone editor and its GitHub Pages workflow have been removed. Earlier versions remain available in Git history. No separate export or deployment is needed.
 
 ## Development Checks
 
