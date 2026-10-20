@@ -60,8 +60,8 @@ function LecturerCreate() {
     <main className="page-shell profile-page">
       <Link className="route-link" to="/lecturers">← Back to lecturers</Link>
       <form onSubmit={handleSave}>
-        <section className="rounded-[5px] border border-[#ece7ed] bg-white p-4 shadow-sm">
-          <h1 className="font-bold text-[#4b145f]">Add lecturer</h1>
+        <section className="rounded-[5px] border border-[color:var(--theme-border)] bg-[var(--theme-surface)] p-4 shadow-sm">
+          <h1 className="font-bold text-[color:var(--theme-heading)]">Add lecturer</h1>
           <div className="mt-4 grid gap-3">
             <label className="search-field">
               <span>Full name</span>

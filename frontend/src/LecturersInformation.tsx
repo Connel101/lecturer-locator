@@ -41,12 +41,12 @@ function LecturersInformation() {
     <main className="page-shell profile-page">
       <Link className="route-link" to="/directory">← Back to directory</Link>
       {/* Lecture's Details */}
-    <section className="overflow-hidden rounded-[5px] border border-[#ece7ed] bg-white shadow-sm md:col-span-1 md:row-span-2">
+    <section className="overflow-hidden rounded-[5px] border border-[color:var(--theme-border)] bg-[var(--theme-surface)] shadow-sm md:col-span-1 md:row-span-2">
       <div className="flex flex-col items-center px-4 pb-3 pt-4">
 
            {/* TODO: Connect profile photos when the API provides photoUrl. */}
            {photoUrl && photoUrl !== failedPhotoUrl && (
-             <div className="mb-2 h-[82px] w-[70px] overflow-hidden rounded-[4px] border border-[#e2dce4] bg-[#eee9ef]">
+             <div className="mb-2 h-[82px] w-[70px] overflow-hidden rounded-[4px] border border-[color:var(--theme-border)] bg-[var(--theme-surface-muted)]">
                <img
                  src={photoUrl}
                  alt={lecturer.fullName}
@@ -56,30 +56,30 @@ function LecturersInformation() {
              </div>
            )}
 
-           <h1 className="text-center font-bold text-[#4b145f]">
+           <h1 className="text-center font-bold text-[color:var(--theme-heading)]">
              {lecturer.fullName}
             
            </h1>
 
-           <p className="mt-0.5 text-[#4d3b51]">
+           <p className="mt-0.5 text-[color:var(--theme-secondary)]">
              {lecturer.title}, {lecturer.department}
            </p>
 
            <div className="mt-2 flex flex-wrap justify-center gap-1.5">
              
                {lecturer.modules.map((module) => (
-                  <span className="rounded-full border border-[#e2d2e7] bg-[#f7f0f9] px-2 py-0.5  font-semibold text-[#5a1b70]" key={module.code}>
+                  <span className="rounded-full border border-[color:var(--theme-border)] bg-[var(--theme-surface-muted)] px-2 py-0.5  font-semibold text-[color:var(--theme-heading)]" key={module.code}>
                     {module.code}
                   </span>
                 ))}
              
            </div>
            {researchArea && (
-             <div className="mt-3 w-full min-w-0 border-t border-[#ece7ed] pt-3 text-left">
-               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[#695c6c]">
+             <div className="mt-3 w-full min-w-0 border-t border-[color:var(--theme-border)] pt-3 text-left">
+               <p className="text-xs font-semibold uppercase tracking-[0.08em] text-[color:var(--theme-muted)]">
                  Research area
                </p>
-               <p className="mt-1 break-words text-sm leading-relaxed text-[#4d3b51] [overflow-wrap:anywhere]">
+               <p className="mt-1 break-words text-sm leading-relaxed text-[color:var(--theme-secondary)] [overflow-wrap:anywhere]">
                  {researchArea}
                </p>
              </div>
@@ -89,20 +89,20 @@ function LecturersInformation() {
 
        {/* Contact details */}
        {hasContactDetails && (
-         <section className="mt-3 rounded-[5px] border border-[#ece7ed] bg-white p-3 shadow-sm">
-           <h2 className="mb-2 font-bold text-[#4b145f]">
+         <section className="mt-3 rounded-[5px] border border-[color:var(--theme-border)] bg-[var(--theme-surface)] p-3 shadow-sm">
+           <h2 className="mb-2 font-bold text-[color:var(--theme-heading)]">
              Contact
            </h2>
 
            <div className="grid gap-2">
              {lecturer.email && (
                <a
-                 className="flex min-h-14 items-center gap-3 rounded-lg border border-[#e2dce4] px-3 py-2 text-[#4b145f] no-underline transition-colors hover:bg-[#f7f0f9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8539b6] motion-reduce:transition-none"
+                 className="flex min-h-14 items-center gap-3 rounded-lg border border-[color:var(--theme-border)] px-3 py-2 text-[color:var(--theme-heading)] no-underline transition-colors hover:bg-[var(--theme-surface-muted)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)] motion-reduce:transition-none"
                  href={`mailto:${lecturer.email}`}
                >
                  <FontAwesomeIcon icon={faEnvelope} aria-hidden="true" />
                  <span className="min-w-0">
-                   <span className="block text-xs font-semibold uppercase tracking-[0.08em] text-[#695c6c]">
+                   <span className="block text-xs font-semibold uppercase tracking-[0.08em] text-[color:var(--theme-muted)]">
                      Email
                    </span>
                    <span className="block break-all font-medium">
@@ -114,12 +114,12 @@ function LecturersInformation() {
 
              {lecturer.officePhone && (
                <a
-                 className="flex min-h-14 items-center gap-3 rounded-lg border border-[#e2dce4] px-3 py-2 text-[#4b145f] no-underline transition-colors hover:bg-[#f7f0f9] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#8539b6] motion-reduce:transition-none"
+                 className="flex min-h-14 items-center gap-3 rounded-lg border border-[color:var(--theme-border)] px-3 py-2 text-[color:var(--theme-heading)] no-underline transition-colors hover:bg-[var(--theme-surface-muted)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--theme-accent)] motion-reduce:transition-none"
                  href={telephoneHref(lecturer.officePhone)}
                >
                  <FontAwesomeIcon icon={faPhone} aria-hidden="true" />
                  <span className="min-w-0">
-                   <span className="block text-xs font-semibold uppercase tracking-[0.08em] text-[#695c6c]">
+                   <span className="block text-xs font-semibold uppercase tracking-[0.08em] text-[color:var(--theme-muted)]">
                      Office phone
                    </span>
                    <span className="block break-words font-medium">
@@ -133,9 +133,9 @@ function LecturersInformation() {
        )}
 
        {/* Contact & Location */}
-       <section className="mt-3 rounded-[5px] border border-[#ece7ed] bg-white p-3 shadow-sm">
+       <section className="mt-3 rounded-[5px] border border-[color:var(--theme-border)] bg-[var(--theme-surface)] p-3 shadow-sm">
 
-         <h2 className=" font-bold text-[#4b145f ] mb-4">
+         <h2 className=" font-bold text-[color:var(--theme-heading)] mb-4">
             Location
          </h2>
 
@@ -143,11 +143,11 @@ function LecturersInformation() {
           <div className="flex gap-2">
             <FontAwesomeIcon icon={faBuilding} />
           <div>
-          <p className="font-semibold text-[#4a3a4e]">
+          <p className="font-semibold text-[color:var(--theme-secondary)]">
             Office
           </p>
 
-          <p className="leading-3 text-[#56465a]">
+          <p className="leading-3 text-[color:var(--theme-secondary)]">
             {lecturer.office ? `${lecturer.office.buildingName ?? 'Building unavailable'}, room ${lecturer.office.roomNumber}` : 'Office not assigned'}
           </p>
 
@@ -156,27 +156,27 @@ function LecturersInformation() {
 
           <Link
             to="directions"
-            className="primary-button mt-4 flex min-h-14 w-full items-center justify-center gap-3 text-center no-underline transition-colors hover:bg-[#52166e] active:bg-[#2b0b3c] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#8539b6] motion-reduce:transition-none"
+            className="primary-button mt-4 flex min-h-14 w-full items-center justify-center gap-3 text-center no-underline transition-colors hover:bg-[var(--theme-button-hover)] active:bg-[var(--theme-button-active)] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--theme-accent)] motion-reduce:transition-none"
           >
             <FontAwesomeIcon icon={faDiamondTurnRight} aria-hidden="true" />
             View directions
           </Link>
        </section>
 
-       <section className="mt-3 rounded-[5px] border border-[#ece7ed] bg-white p-3 shadow-sm">
-         <h2 className="mb-2 font-bold text-[#4b145f]">Timetable</h2>
+       <section className="mt-3 rounded-[5px] border border-[color:var(--theme-border)] bg-[var(--theme-surface)] p-3 shadow-sm">
+         <h2 className="mb-2 font-bold text-[color:var(--theme-heading)]">Timetable</h2>
          {lecturer.timetableFileRef ? (
            <Link to="timetable" className="primary-button flex min-h-14 items-center justify-center no-underline">View timetable</Link>
          ) : <p className="status-message">No timetable is available.</p>}
        </section>
 
        {/* QR Code */}
-       <section className="mt-3 rounded-[5px] border border-[#ece7ed] bg-white p-3 text-center shadow-sm">
-         <p className=" font-medium uppercase tracking-[0.12em] text-[#5d4b61]">
+       <section className="mt-3 rounded-[5px] border border-[color:var(--theme-border)] bg-[var(--theme-surface)] p-3 text-center shadow-sm">
+         <p className=" font-medium uppercase tracking-[0.12em] text-[color:var(--theme-secondary)]">
            Scan to share profile
          </p>
 
-         <div className="mx-auto mt-2 h-[120px] w-[120px] overflow-hidden rounded border border-[#e5e0e7] bg-white p-1">
+         <div className="mx-auto mt-2 h-[120px] w-[120px] overflow-hidden rounded border border-[color:var(--theme-border)] bg-white p-1">
            <LecturerQRCode lecturerId={lecturer.id} />
          </div>
        </section>
@@ -184,25 +184,25 @@ function LecturersInformation() {
        {/* Office Hours */}
 
        {lecturer.officeHours.length > 0 && (
-       <section className="mt-3 rounded-[5px] border border-[#ece7ed] bg-white p-3 shadow-sm md:col-span-2">
+       <section className="mt-3 rounded-[5px] border border-[color:var(--theme-border)] bg-[var(--theme-surface)] p-3 shadow-sm md:col-span-2">
          <div className="flex items-center justify-between">
-           <h2 className=" font-bold text-[#4b145f]">
+           <h2 className=" font-bold text-[color:var(--theme-heading)]">
              Office Hours
            </h2>
            <FontAwesomeIcon icon={faClock} />
          </div>
 
-         <div className="mt-2 divide-y divide-[#eee9ef] ">     
+         <div className="mt-2 divide-y divide-[color:var(--theme-border)] ">
             {lecturer.officeHours.map((officeHour) => (
             <div
               className="flex items-center justify-between py-1.5"
               key={`${officeHour.dayOfWeek}-${officeHour.startTime}-${officeHour.endTime}`}
             >
-              <span className="font-medium text-[#4c3d50]">
+              <span className="font-medium text-[color:var(--theme-secondary)]">
                 {dayNames[officeHour.dayOfWeek - 1]}
               </span>
 
-              <span className="text-[#695c6c]">
+              <span className="text-[color:var(--theme-muted)]">
                  {officeHour.startTime}–{officeHour.endTime}
                </span>
             </div>

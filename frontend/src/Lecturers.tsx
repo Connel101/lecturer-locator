@@ -99,7 +99,7 @@ useEffect(() => {
 
   return (
      <main className="page-shell">
-          <h1 className="text-2xl font-bold text-[#4b145f]">Lecturer management</h1>
+          <h1 className="text-2xl font-bold text-[color:var(--theme-heading)]">Lecturer management</h1>
           <p className="page-intro">
             View and manage faculty members across all departments.
           </p>
