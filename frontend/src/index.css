@@ -1149,7 +1149,20 @@ textarea::placeholder {
   --theme-backdrop: rgba(0, 0, 0, 0.7);
 }
 
-.top-user__menu-item.appearance-menu-item { display: flex; flex-direction: column; gap: 0.15rem; }
+.top-user__menu-item.appearance-menu-item,
+.profile-password { display: flex; flex-direction: column; gap: 0.15rem; }
+.profile-password {
+  width: 100%;
+  margin: 0;
+  padding: 0.75rem;
+  color: var(--theme-secondary);
+  background: none;
+  border: 0;
+  border-radius: 0.55rem;
+  font-size: 0.875rem;
+  font-weight: 650;
+  cursor: default;
+}
 .appearance-menu-item span:last-child { color: var(--theme-muted); font-size: 0.75rem; font-weight: 400; }
 
 .appearance-dialog {

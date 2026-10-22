@@ -111,15 +111,16 @@ function Navbar() {
 
 
         <div className="top-user__container" ref={userMenuRef}>
-        <button ref={accountButton} type="button" onClick={() => { setUserMenu((open) => !open); setMenu(false); }} className="top-nav__icon-button" aria-label="Account menu" aria-expanded={usermenu}><FontAwesomeIcon icon={faUser} /></button>
+        <button ref={accountButton} type="button" onClick={() => { setUserMenu((open) => !open); setMenu(false); }} className="top-nav__icon-button" aria-label="Account menu" aria-expanded={usermenu}>
+          {session
+            ? <img src="/nwu-logo.png" className="h-8 w-8 rounded-full border border-[#e2dce4] bg-white object-contain p-0.5" alt="" />
+            : <FontAwesomeIcon icon={faUser} />}
+        </button>
         {usermenu && (
           <div className="top-user__menu">
             {session
               ? <button type="button" className="top-user__menu-item" onClick={() => { setUserMenu(false); setShowProfile(true); }}>Profile</button>
               : <Link to="/signin" onClick={() => setUserMenu(false)}>Sign In</Link>}
-            <button type="button" className="top-user__menu-item appearance-menu-item" onClick={() => { setUserMenu(false); setShowAppearance(true); }}>
-              <span>Appearance</span><span>{themeLabels[theme]}</span>
-            </button>
             {installMenuItem}
             <button type="button" className="top-user__menu-item" onClick={() => { setUserMenu(false); setShowHelp(true); }}>
               Help &amp; feedback
@@ -175,23 +176,19 @@ function Navbar() {
           <section className="install-dialog" role="dialog" aria-modal="true" aria-labelledby="profile-dialog-title" onClick={(event) => event.stopPropagation()}>
             <h2 id="profile-dialog-title">Profile</h2>
             <div className="mb-4 flex flex-col items-center gap-2">
-            <label className={`relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[#e2dce4] bg-[#f3edf5] text-3xl font-semibold text-[#4b145f] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#4b145f] `}>
-              <img className="h-full w-full object-cover"  alt="" /> 
-            </label>
+            <div className="relative flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border border-[#e2dce4] bg-[#f3edf5]">
+              <img src="/nwu-logo.png" className="h-full w-full object-contain p-1" alt="North-West University logo" />
+            </div>
            </div>
-            <label className="search-field">
+            <div className="profile-password appearance-menu-item">
               <span>Password</span>
-              <input  />
-                
-            </label>
+              <span>Contact IT for password</span>
+            </div>
+            <button type="button" className="top-user__menu-item appearance-menu-item" onClick={() => { setShowProfile(false); setShowAppearance(true); }}>
+              <span>Appearance</span><span>{themeLabels[theme]}</span>
+            </button>
 
-            <label className="search-field mb-4">
-              <span>Confirm Password</span>
-              <input  />
-                
-            </label>
             <div className="flex justify-center gap-2 ">
-            <button type="button" className="primary-button" onClick={() => setShowProfile(false)}>Save</button>
             <button type="button" className="primary-button" onClick={() => setShowProfile(false)}>Close</button>
             
             </div>
