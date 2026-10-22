@@ -32,13 +32,13 @@ interface FloorPlan {
 function LecturerEdit() {
   const [offices, setOffices] = useState<Office[]>([]);
   const [buildings, setBuildings] = useState<string[]>([]);
-  
+
   const [floorPlans, setFloorPlans] = useState<FloorPlan[]>([]);
-  
+
   //fullName, title, department, email, officePhone, researchArea
   const lecturer = useLecturerProfile();
   const [officeId, setOfficeId] = useState(lecturer.office?.id);
-  
+
   const [fullName, setFullName] = useState(lecturer.fullName);
   const [title, setTitle] = useState(lecturer.title ?? '');
   const [department, setDepartment] = useState(lecturer.department ?? '');
@@ -145,7 +145,7 @@ function LecturerEdit() {
     }
   }
 
-  
+
 
   useEffect(() => {
     async function loadBuildings() {
@@ -188,7 +188,7 @@ function LecturerEdit() {
 
   loadModules();
 }, []);
-  
+
   useEffect(() => {
   async function loadOffices() {
     try {
@@ -209,7 +209,7 @@ function LecturerEdit() {
   loadOffices();
 }, []);
 
-  
+
 
   async function handleSaveDetails(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -228,7 +228,7 @@ function LecturerEdit() {
           email: email || null,
           officePhone: officePhone || null,
           researchArea: researchArea || null,
-          
+
         }),
       });
 
@@ -253,7 +253,7 @@ function LecturerEdit() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           moduleId: moduleId,
-          
+
         }),
       });
 
@@ -280,7 +280,7 @@ function LecturerEdit() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           officeId: officeId,
-          
+
         }),
       });
 
@@ -304,13 +304,13 @@ function LecturerEdit() {
   }
 
   async function removeModule(moduleId: number) {
-  
-    
 
-    
+
+
+
       const response = await fetch(`/api/admin/lecturers/${lecturer.id}/modules/${moduleId}`, {
         method: 'DELETE',
-        
+
       });
 
       if (!response.ok) return;
@@ -318,9 +318,9 @@ function LecturerEdit() {
       setModules((current) =>
         current.filter((module) => module.id !== moduleId),
       );
-     
 
-     
+
+
   }
 
 
@@ -331,17 +331,18 @@ function LecturerEdit() {
     <main className="page-shell profile-page">
       <Link className="route-link" to="/lecturers">← Back to lecturers</Link>
       <form onSubmit={handleSaveDetails}>
-        <section className="rounded-[5px] border border-[#ece7ed] bg-white p-4 shadow-sm">
+        <section className="rounded-[5px] border border-[color:var(--theme-border)] bg-[var(--theme-surface)] p-4 shadow-sm">
+
+          <h1 className="font-bold text-[color:var(--theme-heading)] mb-8">Edit lecturer</h1>
           <div className="mb-4 flex flex-col items-center gap-2">
-            <label className={`relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[#e2dce4] bg-[#f3edf5] text-3xl font-semibold text-[#4b145f] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#4b145f] ${isSavingPhoto ? 'opacity-60' : ''}`}>
+            <label className={`relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[color:var(--theme-border)] bg-[var(--theme-surface-muted)] text-3xl font-semibold text-[color:var(--theme-heading)] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--theme-heading)] ${isSavingPhoto ? 'opacity-60' : ''}`}>
               {lecturer.photoUrl ? <img className="h-full w-full object-cover" src={lecturer.photoUrl} alt="" /> : fullName.trim().charAt(0).toUpperCase()}
-              <span className="absolute inset-x-0 bottom-0 bg-[#4b145f]/85 py-1 text-center text-xs font-medium text-white">{isSavingPhoto ? 'Saving…' : lecturer.photoUrl ? 'Change' : 'Add photo'}</span>
+              <span className="absolute inset-x-0 bottom-0 bg-[var(--theme-button)]/85 py-1 text-center text-xs font-medium text-white">{isSavingPhoto ? 'Saving…' : lecturer.photoUrl ? 'Change' : 'Add photo'}</span>
               <input className="absolute inset-0 cursor-pointer opacity-0" type="file" accept="image/png,image/jpeg,image/webp" aria-label="Upload lecturer profile photo" disabled={isSavingPhoto} onChange={handleSavePhoto} />
             </label>
             {photoMessage && <p className="status-message status-message--success" role="status">{photoMessage}</p>}
             {photoError && <p className="status-message status-message--error" role="alert">{photoError}</p>}
           </div>
-          <h1 className="font-bold text-[#4b145f]">Edit lecturer</h1>
           <div className="mt-4 grid gap-3">
             <label className="search-field">
               <span>Full name</span>
@@ -388,7 +389,7 @@ function LecturerEdit() {
           </div>
           {saveMessage && !editDetails&& <p className="status-message status-message--success" role="status">{saveMessage}</p>}
           {saveError && !editDetails&& <p className="status-message status-message--error" role="alert">{saveError}</p>}
-        
+
           <div className="mt-4 flex justify-end">
             {editDetails ? (
               <button className="primary-button" type="submit" disabled={isSaving}>
@@ -408,7 +409,7 @@ function LecturerEdit() {
       </form>
 
       <form onSubmit={handleSaveOffice}>
-        <section className="mt-4 rounded-[5px] border border-[#ece7ed] bg-white p-4 shadow-sm">
+        <section className="mt-4 rounded-[5px] border border-[color:var(--theme-border)] bg-[var(--theme-surface)] p-4 shadow-sm">
           <div className="mt-4 grid gap-3">
             <label className="search-field">
               <span>Building</span>
@@ -432,7 +433,7 @@ function LecturerEdit() {
                 <p className="m-0 text-xs font-normal leading-tight">{floorlevel}</p>
               )}
               {editOffice && (
-                
+
 
                 <select
   value={floorlevel}
@@ -472,15 +473,15 @@ function LecturerEdit() {
 </select>
                 )}
             </label>
-            
-            
-            
-            
-            
+
+
+
+
+
           </div>
           {saveMessageOffice && !editOffice&& <p className="status-message status-message--success" role="status">{saveMessageOffice}</p>}
           {saveErrorOffice && !editOffice&& <p className="status-message status-message--error" role="alert">{saveErrorOffice}</p>}
-        
+
           <div className="mt-4 flex justify-end">
 
             {editOffice ? (
@@ -500,19 +501,19 @@ function LecturerEdit() {
           </section>
       </form>
 
-      
-        <section className="mt-4 rounded-[5px] border border-[#ece7ed] bg-white p-4 shadow-sm">
+
+        <section className="mt-4 rounded-[5px] border border-[color:var(--theme-border)] bg-[var(--theme-surface)] p-4 shadow-sm">
           <div className="mt-4 grid gap-3">
             <label className="search-field">
               <span>Modules</span>
               <div className="mt-2 flex flex-wrap  gap-1.5">
-             
+
                {modules.map((module) => (
-                  <span className="inline-flex items-center gap-1 rounded-full border border-[#e2d2e7] bg-[#f7f0f9] px-2 py-0.5 font-semibold text-[#5a1b70]" key={module.code}>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-[color:var(--theme-border)] bg-[var(--theme-surface-muted)] px-2 py-0.5 font-semibold text-[color:var(--theme-heading)]" key={module.code}>
                     {module.code}
                     <button
                       aria-label="Decorative cross"
-                      className="inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-[#5a1b70]"
+                      className="inline-flex h-5 w-5 cursor-pointer items-center justify-center rounded-full text-[color:var(--theme-heading)]"
                       type="button"
                       onClick={() => void removeModule(module.id)}
                     >
@@ -520,23 +521,23 @@ function LecturerEdit() {
                     </button>
                   </span>
                 ))}
-             
+
            </div>
             </label>
-              
-            
-            
-            
-            
-            
-            
+
+
+
+
+
+
+
           </div>
           {saveMessageOffice && !editOffice&& <p className="status-message status-message--success" role="status">{saveMessageOffice}</p>}
           {saveErrorOffice && !editOffice&& <p className="status-message status-message--error" role="alert">{saveErrorOffice}</p>}
-        
+
           <div className="mt-4 flex justify-end">
-            
-              
+
+
               <button
                 className="primary-button"
                 type="button"
@@ -544,24 +545,24 @@ function LecturerEdit() {
               >
                 Add module
               </button>
-        
+
           </div>
           </section>
 
-      <section className="timetable-edit mt-4 rounded-[5px] border border-[#ece7ed] bg-white p-4 shadow-sm">
-        <h2 className="font-bold text-[#4b145f]">Timetable</h2>
-        <label className={`relative block cursor-pointer overflow-hidden rounded border border-[#e2dce4] bg-[#f7f4f8] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#4b145f] ${isSavingTimetable ? 'opacity-60' : ''}`}>
+      <section className="timetable-edit mt-4 rounded-[5px] border border-[color:var(--theme-border)] bg-[var(--theme-surface)] p-4 shadow-sm">
+        <h2 className="font-bold text-[color:var(--theme-heading)]">Timetable</h2>
+        <label className={`relative block cursor-pointer overflow-hidden rounded border border-[color:var(--theme-border)] bg-[var(--theme-surface-muted)] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[var(--theme-heading)] ${isSavingTimetable ? 'opacity-60' : ''}`}>
           {lecturer.timetableFileRef ? (
             <>
-              <img className="w-full" src={lecturer.timetableFileRef} alt={`Timetable for ${lecturer.fullName}`} />
-              <span className="absolute bottom-3 right-3 rounded-full bg-[#4b145f] px-3 py-1.5 text-sm font-medium text-white" aria-live="polite">
+              <img className="w-full bg-white" src={lecturer.timetableFileRef} alt={`Timetable for ${lecturer.fullName}`} />
+              <span className="absolute bottom-3 right-3 rounded-full bg-[var(--theme-button)] px-3 py-1.5 text-sm font-medium text-white" aria-live="polite">
                 {isSavingTimetable ? 'Saving…' : 'Replace image'}
               </span>
             </>
           ) : (
-            <span className="flex min-h-48 flex-col items-center justify-center gap-1 text-center text-[#4b145f]">
+            <span className="flex min-h-48 flex-col items-center justify-center gap-1 text-center text-[color:var(--theme-heading)]">
               <span className="font-medium">{isSavingTimetable ? 'Saving…' : 'Upload timetable'}</span>
-              <span className="text-sm text-[#695c6c]">PNG, JPEG or WebP, up to 4 MB</span>
+              <span className="text-sm text-[color:var(--theme-muted)]">PNG, JPEG or WebP, up to 4 MB</span>
             </span>
           )}
           <input className="sr-only" type="file" accept="image/png,image/jpeg,image/webp" aria-label="Upload lecturer timetable" disabled={isSavingTimetable} onChange={handleSaveTimetable} />
@@ -571,19 +572,19 @@ function LecturerEdit() {
       </section>
 
       {isAddModuleModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#261632]/50 p-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-[var(--theme-backdrop)] p-4">
           <section
             aria-labelledby="add-module-title"
             aria-modal="true"
-            className="w-full max-w-md rounded-2xl border border-[#ece7ed] bg-white p-6 shadow-xl"
+            className="w-full max-w-md rounded-2xl border border-[color:var(--theme-border)] bg-[var(--theme-surface)] p-6 shadow-xl"
             role="dialog"
           >
-            <h2 className="text-xl font-bold text-[#4b145f]" id="add-module-title">
+            <h2 className="text-xl font-bold text-[color:var(--theme-heading)]" id="add-module-title">
               Add module
             </h2>
             <label className="search-field mt-4">
               <span>Module code</span>
-              
+
               <select
                   value={moduleId ?? ""}
                   onChange={(e) => {
@@ -598,12 +599,12 @@ function LecturerEdit() {
                 </option>
                  ))}
                 </select>
-                
-            
+
+
               </label>
             <div className="mt-6 flex justify-end gap-3">
               <button
-                className="rounded-lg border border-[#d9cfde] px-4 py-2 font-semibold text-[#4d3a57] hover:bg-[#f7f4f9]"
+                className="rounded-lg border border-[color:var(--theme-border)] px-4 py-2 font-semibold text-[color:var(--theme-secondary)] hover:bg-[var(--theme-page)]"
                 onClick={() => setIsAddModuleModalOpen(false)}
                 type="button"
               >

@@ -1,9 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars, faBuildingColumns, faCamera, faUser, faUserGear } from '@fortawesome/free-solid-svg-icons'
 import { Link, NavLink } from 'react-router-dom'
 import { authClient } from "./lib/auth-client";
 import { usePwaInstall } from "./hooks/usePwaInstall";
+
+import AppearanceDialog from './AppearanceDialog'
+import { getTheme, setTheme, themeLabels } from './lib/theme'
 
 const tabClassName = ({ isActive }: { isActive: boolean }) =>
   `mobile-nav__item${isActive ? ' mobile-nav__item--active' : ''}`
@@ -20,14 +23,44 @@ function Navbar() {
   const [menu, setMenu] = useState(false)
   const { data: session } = authClient.useSession();
   const [usermenu, setUserMenu] = useState(false)
+
   const [showIosInstructions, setShowIosInstructions] = useState(false)
   const [showHelp, setShowHelp] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
+  const [showAppearance, setShowAppearance] = useState(false)
+  const [theme, updateTheme] = useState(getTheme)
+  const accountButton = useRef<HTMLButtonElement>(null)
   const showInstallOption = !isInstalled && (installPrompt !== null || isIos())
 
   const canInstall = !isInstalled && (installPrompt !== null || isIos())
+  const userMenuRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        userMenuRef.current &&
+        !userMenuRef.current.contains(event.target as Node)
+      ) {
+        setUserMenu(false)
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
 
-  
+  useEffect(() => {
+  function handleClickOutside(event: MouseEvent) {
+    if (
+      menuRef.current &&
+      !menuRef.current.contains(event.target as Node)
+    ) {
+      setMenu(false)
+    }
+  }
+
+  document.addEventListener('mousedown', handleClickOutside)
+  return () => document.removeEventListener('mousedown', handleClickOutside)
+}, [])
 
   const installMenuItem = canInstall && (
     <button
@@ -63,57 +96,47 @@ function Navbar() {
   </button>
 )}
       <nav className="top-nav" aria-label="Main navigation">
-        <div className="top-nav__brand">
-          <button type="button" onClick={() => {setMenu(!menu); setUserMenu(false);}} className="top-nav__icon-button" aria-label="Open navigation menu" aria-expanded={menu}>
+        <div className="top-nav__brand" ref={menuRef}>
+          <button type="button" onClick={() => { setMenu((open) => !open); setUserMenu(false); }} className="top-nav__icon-button" aria-label="Toggle navigation menu" aria-expanded={menu}>
             <FontAwesomeIcon icon={faBars} />
           </button>
           <span>LecturerLocator</span>
+          {menu && (
+            <div className="top-nav__menu">
+              {session && <Link to="/admin" onClick={() => setMenu(false)}>Admin menu</Link>}
+              <Link to="/directory" onClick={() => setMenu(false)}>Directory</Link>
+            </div>
+          )}
         </div>
 
-        
-        <button type="button" onClick={() => {setUserMenu(!usermenu); setMenu(false);}} className="top-nav__icon-button" aria-label="Account menu" aria-expanded={usermenu}><FontAwesomeIcon icon={faUser} /></button>
-        {usermenu && session && (
+
+        <div className="top-user__container" ref={userMenuRef}>
+        <button ref={accountButton} type="button" onClick={() => { setUserMenu((open) => !open); setMenu(false); }} className="top-nav__icon-button" aria-label="Account menu" aria-expanded={usermenu}><FontAwesomeIcon icon={faUser} /></button>
+        {usermenu && (
           <div className="top-user__menu">
-            <button type="button" className="top-user__menu-item" onClick={() => { setUserMenu(false); setShowProfile(true); }}>
-              Profile
+            {session
+              ? <button type="button" className="top-user__menu-item" onClick={() => { setUserMenu(false); setShowProfile(true); }}>Profile</button>
+              : <Link to="/signin" onClick={() => setUserMenu(false)}>Sign In</Link>}
+            <button type="button" className="top-user__menu-item appearance-menu-item" onClick={() => { setUserMenu(false); setShowAppearance(true); }}>
+              <span>Appearance</span><span>{themeLabels[theme]}</span>
             </button>
             {installMenuItem}
             <button type="button" className="top-user__menu-item" onClick={() => { setUserMenu(false); setShowHelp(true); }}>
               Help &amp; feedback
             </button>
-            <p
-            onClick={async () => {
+            {session && <button type="button" className="top-user__menu-item" onClick={async () => {
               await authClient.signOut();
               setUserMenu(false);
-              window.location.reload();
-              window.location.href = "/signin";
-            }}
-          >
-            Sign Out
-          </p>
+              window.location.href = '/signin';
+            }}>Sign Out</button>}
           </div>
         )}
-
-        {usermenu && !session && (
-          <div className="top-user__menu">
-            <Link to="/signin" onClick={() => { setUserMenu(false) }}>Sign In</Link>
-            {installMenuItem}
-            <button type="button" className="top-user__menu-item" onClick={() => { setUserMenu(false); setShowHelp(true); }}>
-              Help &amp; feedback
-            </button>
-            
-          </div>
-        )}
-
-        {menu && (
-          <div className="top-nav__menu">
-            {session && 
-            
-            <Link to="/admin" onClick={() => setMenu(false)}>Admin menu</Link>}
-            <Link to="/directory" onClick={() => setMenu(false)}>Directory</Link>
-          </div>
-        )}
+        </div>
       </nav>
+
+      {showAppearance && <AppearanceDialog theme={theme}
+        onChange={(value) => { setTheme(value); updateTheme(value) }}
+        onClose={() => { setShowAppearance(false); accountButton.current?.focus() }} />}
 
       {showIosInstructions && (
         <div className="install-dialog__backdrop" role="presentation" onClick={() => setShowIosInstructions(false)}>
@@ -149,8 +172,8 @@ function Navbar() {
 
       {showProfile && (
         <div className="install-dialog__backdrop" role="presentation" onClick={() => setShowProfile(false)}>
-          <section className="install-dialog" role="dialog" aria-modal="true" aria-labelledby="help-dialog-title" onClick={(event) => event.stopPropagation()}>
-            <h2 id="help-dialog-title">Profile</h2>
+          <section className="install-dialog" role="dialog" aria-modal="true" aria-labelledby="profile-dialog-title" onClick={(event) => event.stopPropagation()}>
+            <h2 id="profile-dialog-title">Profile</h2>
             <div className="mb-4 flex flex-col items-center gap-2">
             <label className={`relative flex h-24 w-24 cursor-pointer items-center justify-center overflow-hidden rounded-full border border-[#e2dce4] bg-[#f3edf5] text-3xl font-semibold text-[#4b145f] focus-within:outline focus-within:outline-2 focus-within:outline-offset-2 focus-within:outline-[#4b145f] `}>
               <img className="h-full w-full object-cover"  alt="" /> 
@@ -191,7 +214,7 @@ function Navbar() {
             <span>Admin</span>
           </NavLink>
         )}
-        
+
       </nav>
     </>
   )

@@ -90,7 +90,7 @@ export default function LecturerQRCode({
 
   if (error) {
     return (
-      <p className="text-sm text-[#695c6c]" role="status">
+      <p className="text-sm text-[color:var(--theme-muted)]" role="status">
         {error}
       </p>
     )
@@ -98,7 +98,7 @@ export default function LecturerQRCode({
 
   if (!qrCodeUrl) {
     return (
-      <p className="text-sm text-[#695c6c]" role="status">
+      <p className="text-sm text-[color:var(--theme-muted)]" role="status">
         Generating QR code…
       </p>
     )
