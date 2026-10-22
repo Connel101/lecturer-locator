@@ -121,6 +121,9 @@ function Navbar() {
             {session
               ? <button type="button" className="top-user__menu-item" onClick={() => { setUserMenu(false); setShowProfile(true); }}>Profile</button>
               : <Link to="/signin" onClick={() => setUserMenu(false)}>Sign In</Link>}
+            <button type="button" className="top-user__menu-item appearance-menu-item" onClick={() => { setUserMenu(false); setShowAppearance(true); }}>
+              <span>Appearance</span><span>{themeLabels[theme]}</span>
+            </button>
             {installMenuItem}
             <button type="button" className="top-user__menu-item" onClick={() => { setUserMenu(false); setShowHelp(true); }}>
               Help &amp; feedback
@@ -184,9 +187,6 @@ function Navbar() {
               <span>Password</span>
               <span>Contact IT for password</span>
             </div>
-            <button type="button" className="top-user__menu-item appearance-menu-item" onClick={() => { setShowProfile(false); setShowAppearance(true); }}>
-              <span>Appearance</span><span>{themeLabels[theme]}</span>
-            </button>
 
             <div className="flex justify-center gap-2 ">
             <button type="button" className="primary-button" onClick={() => setShowProfile(false)}>Close</button>
